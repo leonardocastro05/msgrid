@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MS Grid — Gestión de ligas y torneos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --asphalt: #0b0d10;
+        --asphalt-2: #14171c;
+        --bone: #f2f0ea;
+        --bone-dim: #9a9d9f;
+        --flag: #c8ff3d;
+        --flag-dim: #8fb82b;
+        --red: #ff3b30;
+        --line: #232830;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--asphalt);
+        color: var(--bone);
+        font-family: "JetBrains Mono", monospace;
+        overflow-x: hidden;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      :focus-visible {
+        outline: 2px solid var(--flag);
+        outline-offset: 3px;
+      }
+
+      /* ── Textura de fondo: líneas de asfalto sutiles ───────── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          100deg,
+          transparent 0px,
+          transparent 78px,
+          rgba(242, 240, 234, 0.025) 78px,
+          rgba(242, 240, 234, 0.025) 80px
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ── Header ───────────────────────────────────────────── */
+      header {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 28px 6vw;
+      }
+      .logo {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: 22px;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo .dot {
+        width: 9px;
+        height: 9px;
+        background: var(--flag);
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--flag);
+        animation: pulse 2.4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.35;
+        }
+      }
+      .tag {
+        font-size: 11px;
+        color: var(--bone-dim);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .login-btn {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--asphalt);
+        background: var(--flag);
+        padding: 9px 18px;
+        border-radius: 2px;
+        transition:
+          background 0.25s ease,
+          transform 0.25s ease;
+      }
+      .login-btn:hover {
+        background: var(--bone);
+        transform: translateY(-1px);
+      }
+
+      /* ── Hero ─────────────────────────────────────────────── */
+      .hero {
+        position: relative;
+        z-index: 2;
+        padding: 8vh 6vw 4vh;
+        max-width: 1180px;
+      }
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--flag);
+        margin-bottom: 22px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 28px;
+        height: 1px;
+        background: var(--flag);
+      }
+      h1 {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: clamp(48px, 9vw, 128px);
+        line-height: 0.92;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+      }
+      h1 .stroke {
+        -webkit-text-stroke: 1.5px var(--bone);
+        color: transparent;
+      }
+      .lede {
+        margin-top: 28px;
+        max-width: 600px;
+        font-size: 15.5px;
+        line-height: 1.75;
+        color: var(--bone-dim);
+      }
+      .lede strong {
+        color: var(--bone);
+        font-weight: 500;
+      }
+
+      /* ── Semáforo de salida (signature element) ────────────── */
+      .grid-lights {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 6vw;
+        margin: 7vh 0 5vh;
+      }
+      .grid-lights .rule {
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .lights {
+        display: flex;
+        gap: 9px;
+      }
+      .lights span {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--line);
+        box-shadow: inset 0 0 0 1px rgba(242, 240, 234, 0.08);
+        animation: light-on 3.2s ease-in-out infinite;
+      }
+      .lights span:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .lights span:nth-child(2) {
+        animation-delay: 0.35s;
+      }
+      .lights span:nth-child(3) {
+        animation-delay: 0.7s;
+      }
+      .lights span:nth-child(4) {
+        animation-delay: 1.05s;
+      }
+      .lights span:nth-child(5) {
+        animation-delay: 1.4s;
+      }
+      @keyframes light-on {
+        0%,
+        40% {
+          background: var(--line);
+          box-shadow: inset 0 0 0 1px rgba(242, 240, 234, 0.08);
+        }
+        48%,
+        62% {
+          background: var(--red);
+          box-shadow: 0 0 14px rgba(255, 59, 48, 0.65);
+        }
+        70%,
+        100% {
+          background: var(--line);
+          box-shadow: inset 0 0 0 1px rgba(242, 240, 234, 0.08);
+        }
+      }
+      .lights-label {
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        white-space: nowrap;
+      }
+
+      /* ── Selector de pista (las dos cards) ──────────────────── */
+      .picker {
+        position: relative;
+        z-index: 2;
+        padding: 0 6vw 10vh;
+        max-width: 1180px;
+      }
+      .picker-label {
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        margin-bottom: 22px;
+      }
+      .lanes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+      @media (max-width: 760px) {
+        .lanes {
+          grid-template-columns: 1fr;
+        }
+      }
+      .lane {
+        background: var(--asphalt-2);
+        padding: 44px 38px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        transition: background 0.35s ease;
+      }
+      .lane:hover {
+        background: #181c22;
+      }
+      .lane:hover .go {
+        color: var(--flag);
+        gap: 14px;
+      }
+      .lane:hover .go svg {
+        transform: translateX(4px);
+      }
+
+      .lane-num {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-size: 13px;
+        color: var(--bone-dim);
+        letter-spacing: 0.1em;
+      }
+      .lane h2 {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: clamp(28px, 4vw, 38px);
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+      }
+      .lane p {
+        font-size: 13.5px;
+        line-height: 1.7;
+        color: var(--bone-dim);
+        max-width: 360px;
+      }
+      .lane .go {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--bone);
+        transition:
+          gap 0.25s ease,
+          color 0.25s ease;
+      }
+      .lane .go svg {
+        transition: transform 0.25s ease;
+      }
+
+      .lane.external .lane-num {
+        color: var(--bone-dim);
+      }
+      .lane.internal {
+        border-left: 0;
+      }
+      .lane.internal::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--flag);
+      }
+
+      /* ── Footer ───────────────────────────────────────────── */
+      footer {
+        position: relative;
+        z-index: 2;
+        padding: 24px 6vw 36px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--bone-dim);
+        letter-spacing: 0.04em;
+        border-top: 1px solid var(--line);
+      }
+
+      /* ── Reveal on load ───────────────────────────────────── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .reveal.d1 {
+        animation-delay: 0.05s;
+      }
+      .reveal.d2 {
+        animation-delay: 0.15s;
+      }
+      .reveal.d3 {
+        animation-delay: 0.55s;
+      }
+      .reveal.d4 {
+        animation-delay: 0.7s;
+      }
+      @keyframes rise {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="reveal d1">
+      <div class="logo"><span class="dot"></span>MS GRID</div>
+      <div class="header-right">
+        <div class="tag">Gestión de ligas &amp; torneos</div>
+        <a class="login-btn" href="/pages/login.html">Iniciar sesión</a>
+      </div>
+    </header>
+
+    <section class="hero reveal d2">
+      <div class="eyebrow">Panel de control de liga</div>
+      <h1>Tu liga,<br />bajo <span class="stroke">control.</span></h1>
+      <p class="lede">
+        MS Grid centraliza la gestión de tu liga de
+        <strong>iGP Manager</strong>: clasificaciones, calendario y fases
+        eliminatorias en un único panel, con tus torneos propios construidos
+        sobre esos mismos datos en <strong>MS Manager</strong>.
+      </p>
+    </section>
+
+    <div class="grid-lights reveal d3">
+      <div class="rule"></div>
+      <div class="lights" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="lights-label">Listos en salida</div>
+      <div class="rule"></div>
+    </div>
+
+    <section class="picker reveal d4">
+      <div class="picker-label">Elige destino</div>
+      <div class="lanes">
+        <a
+          class="lane external"
+          href="https://igpmanager.com/app/"
+          target="_blank"
+          rel="noopener"
+        >
+          <span class="lane-num">01 — EXTERNO</span>
+          <h2>iGP Manager</h2>
+          <p>
+            La plataforma original de tu liga: carreras, resultados y la
+            clasificación oficial de cada temporada.
+          </p>
+          <span class="go">
+            Abrir iGP Manager
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M7 17L17 7M7 7h10v10" />
+            </svg>
+          </span>
+        </a>
+
+        <a class="lane internal" href="https://msmanager.onrender.com/">
+          <span class="lane-num">02 — MS GRID</span>
+          <h2>MS Manager</h2>
+          <p>
+            Tu liga, organizada: dashboard, ligas vinculadas y torneos
+            eliminatorios construidos sobre tus datos de iGP.
+          </p>
+          <span class="go">
+            Entrar al panel
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M13 5l7 7-7 7" />
+            </svg>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <span>MS GRID · Liga &amp; torneos</span>
+      <span>Build local</span>
+    </footer>
+  </body>
+</html>

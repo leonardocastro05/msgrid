@@ -26,9 +26,9 @@ app.use("/api/ligas", ligasRoutes);
 app.use("/api/torneos", torneosRoutes);
 
 // ── Fallback: cualquier ruta no-API devuelve el index.html ──
-app.get("*", (req, res, next) => {
+app.get("*splat", (req, res, next) => {
   if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.join(__dirname, "..", "frontend", "pages", "index.html"));
+res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
 });
 
 // ── Conexión a MongoDB Atlas y arranque del servidor ───
