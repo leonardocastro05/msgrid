@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bracket · SRS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/srs.css" />
+  <style>
+    .bracket-page { padding: 28px 24px; max-width: 1200px; margin: 0 auto; }
+
+    .bracket-header { margin-bottom: 28px; }
+    .bracket-header h1 { font-family: var(--font-display); font-size: 28px; font-weight: 700; }
+    .bracket-header p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .bracket-meta { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+
+    /* Scroll horizontal para brackets grandes */
+    .bracket-scroll { overflow-x: auto; padding-bottom: 20px; }
+
+    .bracket-grid {
+      display: flex;
+      gap: 0;
+      align-items: center;
+      min-width: max-content;
+    }
+
+    /* Cada columna = una ronda */
+    .ronda-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding: 0 16px;
+      min-width: 220px;
+    }
+    .ronda-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    /* Cada partido del bracket */
+    .partido {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 8px 0;
+      transition: border-color .15s;
+      position: relative;
+    }
+    .partido.completado { border-color: var(--red); }
+    .partido.editable:hover { border-color: var(--gold); cursor: pointer; }
+
+    .partido-equipo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+    .partido-equipo:last-child { border-bottom: none; }
+    .partido-equipo.ganador { background: #c0393910; }
+    .partido-equipo.ganador .p-nombre { color: var(--red-light); font-weight: 700; }
+
+    .p-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      border-radius: 3px;
+      background: var(--bg-panel-2);
+      flex-shrink: 0;
+    }
+    .p-nombre {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .p-nombre.tbd { color: var(--muted); font-style: italic; font-weight: 400; }
+    .p-puntos {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--muted);
+      min-width: 28px;
+      text-align: right;
+    }
+    .p-puntos.best { color: var(--gold); }
+
+    /* Conector SVG entre rondas */
+    .conector-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 24px;
+    }
+
+    /* Modal de editar partido */
+    .modal-overlay { position: fixed; inset: 0; background: #000000bb; display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 420px; }
+    .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .modal-title .material-icons { color: var(--gold); }
+    .modal-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 6px; }
+    .modal-input { background: var(--bg-panel-2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--white); padding: 10px 14px; font-size: 15px; width: 100%; margin-bottom: 14px; }
+    .modal-input:focus { outline: none; border-color: var(--red); }
+    .ganador-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .ganador-btn { padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-panel-2); color: var(--white); font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; transition: all .15s; }
+    .ganador-btn:hover, .ganador-btn.selected { border-color: var(--red); background: #c0393920; color: var(--red-light); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+    .modal-actions .btn-primary { flex: 1; justify-content: center; }
+    .btn-cancel { flex: 1; padding: 11px; border-radius: var(--radius); border: 1px solid var(--border); background: none; color: var(--muted-light); cursor: pointer; font-weight: 600; }
+    .btn-cancel:hover { color: var(--white); }
+
+    /* Ganador final */
+    .ganador-final {
+      background: linear-gradient(135deg, #d4a01720, #d4a01705);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius-lg);
+      padding: 24px 32px;
+      text-align: center;
+      margin-top: 24px;
+    }
+    .ganador-final .material-icons { font-size: 40px; color: var(--gold); }
+    .ganador-final h2 { font-family: var(--font-display); font-size: 28px; color: var(--gold); margin-top: 8px; }
+    .ganador-final p { color: var(--muted); font-size: 13px; }
+
+    .torneo-estado-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .badge-borrador  { background: #7a7f9422; color: var(--muted); }
+    .badge-activo    { background: #4caf5022; color: #81c784; border: 1px solid #4caf5044; }
+    .badge-finalizado{ background: #d4a01722; color: var(--gold); border: 1px solid #d4a01744; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="../index.html" class="nav-logo">
+      <span class="logo-srs">SRS</span>
+    </a>
+    <div class="nav-links">
+      <a href="dashboard.html" class="nav-link"><span class="material-icons">arrow_back</span>Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="bracket-page">
+    <div id="cargando" class="estado-msg">
+      <span class="material-icons">hourglass_empty</span>
+      <p>Cargando torneo…</p>
+    </div>
+    <div id="contenidoBracket" style="display:none">
+      <div class="bracket-header">
+        <h1 id="torneoNombre">—</h1>
+        <div class="bracket-meta">
+          <span id="torneoBadge" class="torneo-estado-badge badge-borrador">Borrador</span>
+          <span style="color:var(--muted); font-size:12px" id="torneoLiga"></span>
+          <span style="color:var(--muted); font-size:12px" id="torneoParticipantes"></span>
+        </div>
+      </div>
+
+      <div id="ganadorFinal" style="display:none" class="ganador-final">
+        <span class="material-icons">emoji_events</span>
+        <h2 id="ganadorNombre">—</h2>
+        <p>Campeón del torneo</p>
+      </div>
+
+      <div class="bracket-scroll">
+        <div class="bracket-grid" id="bracketGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal editar partido -->
+  <div class="modal-overlay" id="modalPartido">
+    <div class="modal">
+      <div class="modal-title"><span class="material-icons">edit</span> Resultado del partido</div>
+      <label class="modal-label">Ganador</label>
+      <div class="ganador-btns">
+        <button class="ganador-btn" id="btnGanador1" onclick="seleccionarGanador(1)">—</button>
+        <button class="ganador-btn" id="btnGanador2" onclick="seleccionarGanador(2)">—</button>
+      </div>
+      <label class="modal-label">Puntos equipo 1 (opcional)</label>
+      <input type="number" class="modal-input" id="mPuntos1" placeholder="0" />
+      <label class="modal-label">Puntos equipo 2 (opcional)</label>
+      <input type="number" class="modal-input" id="mPuntos2" placeholder="0" />
+      <label class="modal-label">ID de carrera iGP asociada (opcional)</label>
+      <input type="text" class="modal-input" id="mCarreraId" placeholder="241" />
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn-primary" onclick="guardarPartido()"><span class="material-icons">check</span> Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script>
+    const params    = new URLSearchParams(location.search);
+    const torneoId  = params.get('torneo');
+    let torneo      = null;
+    let partidoActivo = null;
+    let ganadorSeleccionado = null;
+    const esAdmin   = estaLogueado();
+
+    async function cargar() {
+      if (!torneoId) {
+        document.getElementById('cargando').innerHTML = '<span class="material-icons">error</span><p>No se especificó un torneo (falta ?torneo=ID)</p>';
+        return;
+      }
+      try {
+        const data = await fetchTorneo(torneoId);
+        torneo = data.torneo;
+        renderTorneo();
+      } catch (err) {
+        document.getElementById('cargando').innerHTML = `<span class="material-icons">error</span><p>Error: ${err.message}</p>`;
+      }
+    }
+
+    function renderTorneo() {
+      document.getElementById('cargando').style.display = 'none';
+      document.getElementById('contenidoBracket').style.display = 'block';
+
+      document.getElementById('torneoNombre').textContent = torneo.nombre;
+      document.getElementById('torneoLiga').textContent   = torneo.liga?.nombre || '';
+      document.getElementById('torneoParticipantes').textContent = `${torneo.participantes.length} equipos`;
+
+      const badge = document.getElementById('torneoBadge');
+      badge.textContent = torneo.estado;
+      badge.className   = `torneo-estado-badge badge-${torneo.estado}`;
+
+      if (torneo.ganador) {
+        document.getElementById('ganadorNombre').textContent = torneo.ganador;
+        document.getElementById('ganadorFinal').style.display = 'block';
+      }
+
+      renderBracket();
+    }
+
+    function renderBracket() {
+      const grid = document.getElementById('bracketGrid');
+      grid.innerHTML = '';
+
+      if (!torneo.partidos?.length) {
+        grid.innerHTML = '<p style="color:var(--muted); padding:20px">El torneo aún no tiene bracket. Inícialo desde el dashboard.</p>';
+        return;
+      }
+
+      // Agrupar por ronda (de mayor a menor = primera ronda primero)
+      const rondas = {};
+      torneo.partidos.forEach(p => {
+        if (!rondas[p.ronda]) rondas[p.ronda] = [];
+        rondas[p.ronda].push(p);
+      });
+
+      const rondasOrdenadas = Object.keys(rondas).map(Number).sort((a, b) => b - a);
+      const totalRondas = rondasOrdenadas.length;
+
+      rondasOrdenadas.forEach((numRonda, idx) => {
+        const partidos = rondas[numRonda].sort((a, b) => a.orden - b.orden);
+
+        const col = document.createElement('div');
+        col.className = 'ronda-col';
+
+        const label = numRonda === 1 ? 'Final' :
+                      numRonda === 2 ? 'Semifinales' :
+                      numRonda === 4 ? 'Cuartos' : `Ronda de ${numRonda * 2}`;
+
+        col.innerHTML = `<div class="ronda-label">${label}</div>`;
+
+        partidos.forEach(p => {
+          const editable = esAdmin && torneo.estado === 'activo' && !p.completado && p.equipo1?.nombre && p.equipo2?.nombre;
+          const card = document.createElement('div');
+          card.className = `partido${p.completado ? ' completado' : ''}${editable ? ' editable' : ''}`;
+          if (editable) card.onclick = () => abrirModal(p);
+
+          card.innerHTML = equipoHtml(p.equipo1, p.ganador) + equipoHtml(p.equipo2, p.ganador);
+          col.appendChild(card);
+        });
+
+        grid.appendChild(col);
+      });
+    }
+
+    function equipoHtml(equipo, ganador) {
+      const esGanador  = equipo?.nombre && ganador === equipo.nombre;
+      const nombre     = equipo?.nombre || 'Por determinar';
+      const esTBD      = !equipo?.nombre;
+      const puntosMax  = ganador ? Math.max(0, 0) : 0; // se actualiza con datos reales
+
+      return `
+        <div class="partido-equipo${esGanador ? ' ganador' : ''}">
+          ${equipo?.logo ? `<img class="p-logo" src="${equipo.logo}" onerror="this.style.display='none'" />` : '<div class="p-logo"></div>'}
+          <span class="p-nombre${esTBD ? ' tbd' : ''}">${nombre}</span>
+          ${equipo?.puntos != null ? `<span class="p-puntos${esGanador ? ' best' : ''}">${equipo.puntos}</span>` : ''}
+        </div>`;
+    }
+
+    // ── Modal edición partido ────────────────────────────────────
+    function abrirModal(partido) {
+      partidoActivo = partido;
+      ganadorSeleccionado = null;
+
+      document.getElementById('btnGanador1').textContent = partido.equipo1?.nombre || '—';
+      document.getElementById('btnGanador2').textContent = partido.equipo2?.nombre || '—';
+      document.getElementById('btnGanador1').classList.remove('selected');
+      document.getElementById('btnGanador2').classList.remove('selected');
+      document.getElementById('mPuntos1').value  = '';
+      document.getElementById('mPuntos2').value  = '';
+      document.getElementById('mCarreraId').value = '';
+
+      document.getElementById('modalPartido').classList.add('open');
+    }
+
+    function cerrarModal() { document.getElementById('modalPartido').classList.remove('open'); }
+
+    function seleccionarGanador(num) {
+      const partido = partidoActivo;
+      ganadorSeleccionado = num === 1 ? partido.equipo1?.nombre : partido.equipo2?.nombre;
+      document.getElementById('btnGanador1').classList.toggle('selected', num === 1);
+      document.getElementById('btnGanador2').classList.toggle('selected', num === 2);
+    }
+
+    async function guardarPartido() {
+      if (!ganadorSeleccionado) { alert('Selecciona un ganador'); return; }
+      const p1 = document.getElementById('mPuntos1').value;
+      const p2 = document.getElementById('mPuntos2').value;
+      const cid = document.getElementById('mCarreraId').value.trim();
+
+      try {
+        await actualizarPartido(torneoId, {
+          ronda:    partidoActivo.ronda,
+          orden:    partidoActivo.orden,
+          ganador:  ganadorSeleccionado,
+          puntos1:  p1 !== '' ? Number(p1) : undefined,
+          puntos2:  p2 !== '' ? Number(p2) : undefined,
+          carreraId: cid || undefined,
+        });
+        cerrarModal();
+        const data = await fetchTorneo(torneoId);
+        torneo = data.torneo;
+        renderTorneo();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    cargar();
+  </script>
+</body>
+</html>

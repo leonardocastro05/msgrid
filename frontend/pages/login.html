@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login · SRS Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/srs.css" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-wrap {
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .login-logo .logo-srs { font-size: 36px; }
+    .login-logo p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .login-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+    }
+    .login-card h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .form-group input {
+      background: var(--bg-panel-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--white);
+      padding: 11px 14px;
+      font-size: 15px;
+      width: 100%;
+      transition: border-color .15s;
+    }
+    .form-group input:focus { outline: none; border-color: var(--red); }
+    .btn-login {
+      width: 100%;
+      margin-top: 8px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .error-msg {
+      background: #c0393920;
+      border: 1px solid var(--red);
+      border-radius: var(--radius);
+      color: var(--red-light);
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-logo">
+      <span class="logo-srs">SRS</span>
+      <p>MS Manager · Panel de administración</p>
+    </div>
+    <div class="login-card">
+      <h2>Acceder</h2>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="admin@srs.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-primary btn-login" id="btnLogin" onclick="handleLogin()">
+        <span class="material-icons">login</span>
+        Entrar
+      </button>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script>
+    // Si ya está logueado, redirigir al dashboard
+    if (estaLogueado()) window.location.href = 'dashboard.html';
+
+    async function handleLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn      = document.getElementById('btnLogin');
+      const errEl    = document.getElementById('errorMsg');
+
+      if (!email || !password) {
+        mostrarError('Rellena todos los campos');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Entrando…';
+      errEl.style.display = 'none';
+
+      try {
+        await login(email, password);
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        mostrarError(err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">login</span> Entrar';
+      }
+    }
+
+    function mostrarError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    // Enter para submit
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+  </script>
+</body>
+</html>
