@@ -59,3 +59,6 @@ desktop.ini
 uploads/
 tmp/
 temp/
+
+uploads/
+!uploads/.gitkeep

@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
   construirPuntosGrid(10);
 
   document
+    .getElementById("wBanner")
+    .addEventListener("change", previsualizarBanner);
+  document
     .getElementById("wParticipantes")
     .addEventListener("input", actualizarContadorParticipantes);
   document
@@ -16,12 +19,14 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("input", actualizarHintClasificados);
 });
 
-// ── Auth helpers ─────────────────────────────────────────────────────────────
-// logout() ya existe en api.js — no lo redefinimos aquí.
+// Cubre el caso de volver atrás desde copa.html (caché del navegador)
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) cargarCopas();
+});
+
+// ── Auth helpers ──────────────────────────────────────────────────────────
 function protegerPagina() {
-  if (!estaLogueado()) {
-    window.location.href = "login.html";
-  }
+  if (!estaLogueado()) window.location.href = "login.html";
 }
 
 function pintarAdminTag() {
@@ -29,7 +34,7 @@ function pintarAdminTag() {
   document.getElementById("adminTag").textContent = admin?.username || "";
 }
 
-// ── Cargar y pintar copas ───────────────────────────────────────────────────
+// ── Cargar y pintar copas ─────────────────────────────────────────────────
 async function cargarCopas() {
   try {
     const res = await fetchMisCopas();
@@ -52,11 +57,20 @@ function pintarCopas(copas) {
   grid.style.display = "grid";
   empty.style.display = "none";
 
+  const SERVER_BASE = API_BASE.replace("/api", "");
+
   grid.innerHTML = copas
     .map((copa) => {
-      const bannerStyle = copa.bannerUrl
-        ? `background-image: url('${escapeAttr(copa.bannerUrl)}')`
+      const bannerUrl = copa.bannerUrl
+        ? copa.bannerUrl.startsWith("http")
+          ? copa.bannerUrl
+          : `${SERVER_BASE}${copa.bannerUrl}`
         : "";
+
+      const bannerStyle = bannerUrl
+        ? `background-image: url('${escapeAttr(bannerUrl)}')`
+        : "";
+
       const faseLabel =
         {
           jornadas: "Jornadas",
@@ -65,19 +79,19 @@ function pintarCopas(copas) {
         }[copa.fase] || copa.fase;
 
       return `
-      <div class="copa-card" onclick="abrirCopa('${copa._id}')">
-        <div class="copa-banner" style="${bannerStyle}">
-          <span class="copa-fase-tag ${copa.fase}">${faseLabel}</span>
-        </div>
-        <div class="copa-body">
-          <div class="copa-nombre">${escapeHtml(copa.nombre)}</div>
-          <div class="copa-meta">
-            <span><span class="material-icons">groups</span> ${copa.participantes?.length || 0}</span>
-            <span><span class="material-icons">calendar_today</span> ${copa.numJornadas} jornadas</span>
+        <div class="copa-card" onclick="abrirCopa('${copa._id}')">
+          <div class="copa-banner" style="${bannerStyle}">
+            <span class="copa-fase-tag ${copa.fase}">${faseLabel}</span>
+          </div>
+          <div class="copa-body">
+            <div class="copa-nombre">${escapeHtml(copa.nombre)}</div>
+            <div class="copa-meta">
+              <span><span class="material-icons">groups</span> ${copa.participantes?.length || 0}</span>
+              <span><span class="material-icons">calendar_today</span> ${copa.numJornadas} jornadas</span>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
     })
     .join("");
 }
@@ -86,12 +100,51 @@ function abrirCopa(id) {
   window.location.href = `copa.html?id=${id}`;
 }
 
-// ── Wizard: navegación ───────────────────────────────────────────────────────
+// ── Banner: previsualización y subida ─────────────────────────────────────
+function previsualizarBanner() {
+  const input = document.getElementById("wBanner");
+  const file = input.files[0];
+  const preview = document.getElementById("bannerPreview");
+  const img = document.getElementById("bannerImg");
+  const texto = document.getElementById("bannerUploadText");
+
+  if (file) {
+    img.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+    texto.textContent = file.name;
+  } else {
+    preview.style.display = "none";
+    texto.textContent = "Seleccionar imagen…";
+  }
+}
+
+async function subirBanner() {
+  const input = document.getElementById("wBanner");
+  if (!input.files || !input.files[0]) return "";
+
+  const formData = new FormData();
+  formData.append("banner", input.files[0]);
+
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData, // sin Content-Type, el navegador lo pone solo
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Error subiendo imagen");
+  return data.url;
+}
+
+// ── Wizard: navegación ────────────────────────────────────────────────────
 function abrirWizard() {
   wizardPaso = 1;
   document.getElementById("wizardOverlay").classList.add("open");
   document.getElementById("wNombre").value = "";
   document.getElementById("wBanner").value = "";
+  document.getElementById("bannerPreview").style.display = "none";
+  document.getElementById("bannerUploadText").textContent =
+    "Seleccionar imagen…";
   document.getElementById("wParticipantes").value = "";
   document.getElementById("wJornadas").value = 10;
   document.getElementById("wClasificados").value = 8;
@@ -171,11 +224,10 @@ function validarPasoActual() {
       return mostrarErrorWizard("El número de jornadas debe ser al menos 1.");
     if (!clasificados || clasificados < 2)
       return mostrarErrorWizard("Deben clasificar al menos 2 participantes.");
-    if (clasificados > totalParticipantes) {
+    if (clasificados > totalParticipantes)
       return mostrarErrorWizard(
         `No puedes clasificar a más de ${totalParticipantes} (el total de participantes).`,
       );
-    }
   }
 
   return true;
@@ -192,7 +244,7 @@ function ocultarErrorWizard() {
   document.getElementById("wizardError").style.display = "none";
 }
 
-// ── Wizard: helpers de cada paso ────────────────────────────────────────────
+// ── Wizard: helpers de cada paso ──────────────────────────────────────────
 function obtenerParticipantes() {
   return document
     .getElementById("wParticipantes")
@@ -253,7 +305,7 @@ function leerTablaPuntos() {
 
 function pintarResumen() {
   const nombre = document.getElementById("wNombre").value.trim();
-  const banner = document.getElementById("wBanner").value.trim();
+  const bannerFile = document.getElementById("wBanner").files?.[0];
   const participantes = obtenerParticipantes();
   const jornadas = document.getElementById("wJornadas").value;
   const clasificados = document.getElementById("wClasificados").value;
@@ -261,7 +313,7 @@ function pintarResumen() {
 
   document.getElementById("resumenList").innerHTML = `
     <div class="resumen-item"><span>Nombre</span><span>${escapeHtml(nombre)}</span></div>
-    <div class="resumen-item"><span>Banner</span><span>${banner ? "Sí" : "Por defecto"}</span></div>
+    <div class="resumen-item"><span>Banner</span><span>${bannerFile ? escapeHtml(bannerFile.name) : "Por defecto"}</span></div>
     <div class="resumen-item"><span>Participantes</span><span>${participantes.length}</span></div>
     <div class="resumen-item"><span>Jornadas</span><span>${jornadas}</span></div>
     <div class="resumen-item"><span>Clasificados a octavos</span><span>${clasificados}</span></div>
@@ -269,16 +321,18 @@ function pintarResumen() {
   `;
 }
 
-// ── Crear copa (llamada final al backend) ───────────────────────────────────
+// ── Crear copa ────────────────────────────────────────────────────────────
 async function crearCopaDesdeWizard() {
   const btn = document.getElementById("btnSiguiente");
   btn.disabled = true;
   btn.textContent = "Creando...";
 
   try {
+    const bannerUrl = await subirBanner();
+
     const payload = {
       nombre: document.getElementById("wNombre").value.trim(),
-      bannerUrl: document.getElementById("wBanner").value.trim(),
+      bannerUrl,
       participantes: obtenerParticipantes(),
       tablaPuntos: leerTablaPuntos(),
       numJornadas: parseInt(document.getElementById("wJornadas").value, 10),
@@ -288,7 +342,7 @@ async function crearCopaDesdeWizard() {
       ),
     };
 
-    const res = await crearCopa(payload); // helper de api.js
+    const res = await crearCopa(payload);
     cerrarWizard();
     abrirCopa(res.copa._id);
   } catch (err) {

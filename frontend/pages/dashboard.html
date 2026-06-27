@@ -474,6 +474,29 @@
           grid-template-columns: 1fr;
         }
       }
+
+      .banner-upload-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px dashed var(--line);
+        border-radius: 2px;
+        padding: 13px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--bone-dim);
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .banner-upload-label:hover {
+        border-color: var(--flag-dim);
+        color: var(--bone);
+      }
+      .banner-upload-label .material-icons {
+        font-size: 18px;
+        color: var(--flag);
+      }
     </style>
   </head>
   <body>
@@ -539,16 +562,30 @@
               />
             </div>
             <div>
-              <label class="field-label">URL del banner (opcional)</label>
-              <input
-                type="text"
-                class="field-input"
-                id="wBanner"
-                placeholder="https://..."
-              />
-              <p class="field-hint">
-                Si lo dejas vacío, se usará un fondo por defecto.
-              </p>
+              <label class="field-label">Banner (opcional)</label>
+              <label class="banner-upload-label" id="bannerUploadLabel">
+                <span class="material-icons">upload</span>
+                <span id="bannerUploadText">Seleccionar imagen…</span>
+                <input
+                  type="file"
+                  id="wBanner"
+                  accept="image/*"
+                  style="display: none"
+                  onchange="previsualizarBanner(this)"
+                />
+              </label>
+              <div id="bannerPreview" style="display: none; margin-top: 10px">
+                <img
+                  id="bannerImg"
+                  style="
+                    width: 100%;
+                    height: 90px;
+                    object-fit: cover;
+                    border-radius: 2px;
+                  "
+                />
+              </div>
+              <p class="field-hint">JPG, PNG o WebP. Máximo 5 MB.</p>
             </div>
           </div>
 

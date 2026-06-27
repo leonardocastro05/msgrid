@@ -9,7 +9,7 @@
  *     a un bracket de eliminación directa (octavos, cuartos, semis, final).
  */
 
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // ─── Sub-esquemas ───────────────────────────────────────────────────────────
 
@@ -19,17 +19,17 @@ const ResultadoParticipanteSchema = new mongoose.Schema(
     posicion: { type: Number, required: true },
     puntos: { type: Number, default: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const JornadaSchema = new mongoose.Schema(
   {
     numero: { type: Number, required: true },
-    nombre: { type: String, default: '' },
+    nombre: { type: String, default: "" },
     resultados: [ResultadoParticipanteSchema],
     completada: { type: Boolean, default: false },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const PartidoSchema = new mongoose.Schema(
@@ -41,20 +41,23 @@ const PartidoSchema = new mongoose.Schema(
     ganador: { type: String, default: null },
     completado: { type: Boolean, default: false },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // ─── Esquema principal ──────────────────────────────────────────────────────
 
 const CopaSchema = new mongoose.Schema({
   nombre: { type: String, required: true, trim: true },
-  bannerUrl: { type: String, default: '' },
+  bannerUrl: { type: String, default: "" },
 
-  admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Admin' }],
+  admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "Admin" }],
 
   participantes: [{ type: String, required: true }],
 
-  tablaPuntos: { type: [Number], default: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1] },
+  tablaPuntos: {
+    type: [Number],
+    default: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+  },
 
   numJornadas: { type: Number, required: true },
   numClasificados: { type: Number, required: true },
@@ -63,26 +66,32 @@ const CopaSchema = new mongoose.Schema({
 
   fase: {
     type: String,
-    enum: ['jornadas', 'eliminatoria', 'finalizado'],
-    default: 'jornadas',
+    enum: ["jornadas", "eliminatoria", "finalizado"],
+    default: "jornadas",
   },
 
   bracket: [PartidoSchema],
   campeon: { type: String, default: null },
 
   creadoEn: { type: Date, default: Date.now },
-  creadoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+  creadoPor: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
 });
 
-// ─── Virtual: clasificación general calculada dinámicamente ───────────────
-CopaSchema.virtual('clasificacionGeneral').get(function () {
+// ─── Configuración de serialización ────────────────────────────────────────
+
+CopaSchema.set("toJSON", { virtuals: true });
+CopaSchema.set("toObject", { virtuals: true });
+
+// ─── Virtual: clasificación general calculada dinámicamente ────────────────
+
+CopaSchema.virtual("clasificacionGeneral").get(function () {
   const tabla = {};
 
-  for (const nombre of this.participantes) {
+  for (const nombre of this.participantes || []) {
     tabla[nombre] = { nombre, jornadasCorridas: 0, puntos: 0 };
   }
 
-  for (const jornada of this.jornadas) {
+  for (const jornada of this.jornadas || []) {
     if (!jornada.completada) continue;
     for (const r of jornada.resultados) {
       if (!tabla[r.nombre]) continue;
@@ -94,9 +103,6 @@ CopaSchema.virtual('clasificacionGeneral').get(function () {
   return Object.values(tabla).sort((a, b) => b.puntos - a.puntos);
 });
 
-CopaSchema.set('toJSON', { virtuals: true });
-CopaSchema.set('toObject', { virtuals: true });
-
 // ─── Métodos de instancia ───────────────────────────────────────────────────
 
 CopaSchema.methods.generarJornadasVacias = function () {
@@ -106,7 +112,10 @@ CopaSchema.methods.generarJornadasVacias = function () {
   }
 };
 
-CopaSchema.methods.registrarResultadoJornada = function (numeroJornada, ordenLlegada) {
+CopaSchema.methods.registrarResultadoJornada = function (
+  numeroJornada,
+  ordenLlegada,
+) {
   const jornada = this.jornadas.find((j) => j.numero === numeroJornada);
   if (!jornada) throw new Error(`Jornada ${numeroJornada} no encontrada`);
 
@@ -117,11 +126,13 @@ CopaSchema.methods.registrarResultadoJornada = function (numeroJornada, ordenLle
   }));
   jornada.completada = true;
 
-  this.markModified('jornadas');
+  this.markModified("jornadas");
 };
 
 CopaSchema.methods.generarBracket = function () {
-  const clasificados = this.clasificacionGeneral.slice(0, this.numClasificados).map((c) => c.nombre);
+  const clasificados = this.clasificacionGeneral
+    .slice(0, this.numClasificados)
+    .map((c) => c.nombre);
 
   let tamanoCuadro = 1;
   while (tamanoCuadro < clasificados.length) tamanoCuadro *= 2;
@@ -166,8 +177,8 @@ CopaSchema.methods.generarBracket = function () {
   }
 
   this.bracket = partidos;
-  this.fase = 'eliminatoria';
-  this.markModified('bracket');
+  this.fase = "eliminatoria";
+  this.markModified("bracket");
 
   this._propagarGanadoresAutomaticos();
 };
@@ -183,12 +194,14 @@ CopaSchema.methods._avanzarGanador = function (ronda, orden, ganador) {
   const siguienteRonda = ronda - 1;
   if (siguienteRonda < 1) {
     this.campeon = ganador;
-    this.fase = 'finalizado';
+    this.fase = "finalizado";
     return;
   }
 
   const siguienteOrden = Math.floor(orden / 2);
-  const siguiente = this.bracket.find((p) => p.ronda === siguienteRonda && p.orden === siguienteOrden);
+  const siguiente = this.bracket.find(
+    (p) => p.ronda === siguienteRonda && p.orden === siguienteOrden,
+  );
   if (!siguiente) return;
 
   if (orden % 2 === 0) {
@@ -209,18 +222,22 @@ CopaSchema.methods._avanzarGanador = function (ronda, orden, ganador) {
 };
 
 CopaSchema.methods.registrarGanadorPartido = function (ronda, orden, ganador) {
-  const partido = this.bracket.find((p) => p.ronda === ronda && p.orden === orden);
-  if (!partido) throw new Error('Partido no encontrado');
-  if (partido.completado) throw new Error('Este partido ya tiene ganador');
+  const partido = this.bracket.find(
+    (p) => p.ronda === ronda && p.orden === orden,
+  );
+  if (!partido) throw new Error("Partido no encontrado");
+  if (partido.completado) throw new Error("Este partido ya tiene ganador");
   if (ganador !== partido.participante1 && ganador !== partido.participante2) {
-    throw new Error('El ganador debe ser uno de los dos participantes del partido');
+    throw new Error(
+      "El ganador debe ser uno de los dos participantes del partido",
+    );
   }
 
   partido.ganador = ganador;
   partido.completado = true;
-  this.markModified('bracket');
+  this.markModified("bracket");
 
   this._avanzarGanador(ronda, orden, ganador);
 };
 
-module.exports = mongoose.model('Copa', CopaSchema);
+module.exports = mongoose.model("Copa", CopaSchema);
