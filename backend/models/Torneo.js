@@ -1,84 +1,105 @@
-const mongoose = require('mongoose');
+/**
+ * backend/models/Torneo.js
+ *
+ * Modelo de torneo tipo "liga de fútbol":
+ * cada jornada enfrenta dos equipos; el que acaba en mejor posición
+ * en la carrera de iGP gana la jornada y suma 3 puntos.
+ */
 
-// Un enfrentamiento individual del bracket
-const PartidoSchema = new mongoose.Schema({
-  ronda:     Number,          // 1 = final, 2 = semis, 4 = cuartos, etc.
-  orden:     Number,          // posición dentro de la ronda
-  equipo1:   { nombre: String, logo: String, puntos: Number },
-  equipo2:   { nombre: String, logo: String, puntos: Number },
-  ganador:   { type: String, default: null }, // nombre del ganador
-  carreraId: { type: String, default: null }, // ID de carrera iGP asociada
-  completado: { type: Boolean, default: false },
+const mongoose = require("mongoose");
+
+// ─── Sub-esquemas ─────────────────────────────────────────────────────────────
+
+const ResultadoEnfrentamientoSchema = new mongoose.Schema(
+  {
+    posEquipo1: Number, // posición en carrera
+    posEquipo2: Number,
+    ganador: {
+      type: String,
+      enum: ["equipo1", "equipo2", "empate", null],
+      default: null,
+    },
+    ptsEquipo1: { type: Number, default: 0 }, // 3=victoria, 1=empate, 0=derrota
+    ptsEquipo2: { type: Number, default: 0 },
+  },
+  { _id: false },
+);
+
+const EnfrentamientoSchema = new mongoose.Schema({
+  equipo1: { type: String, required: true },
+  equipo2: { type: String, required: true },
+  carreraId: { type: String, default: null }, // ID de carrera en iGPManager
+  resultado: { type: ResultadoEnfrentamientoSchema, default: null },
+  estado: { type: String, enum: ["pendiente", "jugado"], default: "pendiente" },
 });
+
+const JornadaSchema = new mongoose.Schema({
+  numero: { type: Number, required: true },
+  enfrentamientos: [EnfrentamientoSchema],
+});
+
+// ─── Esquema principal ────────────────────────────────────────────────────────
 
 const TorneoSchema = new mongoose.Schema({
-  nombre:    { type: String, required: true },
-  liga:      { type: mongoose.Schema.Types.ObjectId, ref: 'Liga', required: true },
-  tipo:      { type: String, enum: ['eliminatorio'], default: 'eliminatorio' },
-
-  // Equipos participantes (mínimo 2, potencia de 2 para bracket limpio)
-  participantes: [{
-    nombre: String,
-    logo:   String,
-    seed:   Number,   // cabeza de serie
-  }],
-
-  partidos:  [PartidoSchema],
-  estado:    { type: String, enum: ['borrador', 'activo', 'finalizado'], default: 'borrador' },
-  ganador:   { type: String, default: null },
-  creadoEn:  { type: Date, default: Date.now },
+  nombre: { type: String, required: true, trim: true },
+  ligaId: { type: mongoose.Schema.Types.ObjectId, ref: "Liga", required: true },
+  temporada: { type: Number, default: 1 },
+  // Equipos que participan (nombre tal como aparece en iGPManager)
+  equipos: [{ nombre: { type: String, required: true }, igpNombre: String }],
+  jornadas: [JornadaSchema],
+  estado: { type: String, enum: ["activo", "finalizado"], default: "activo" },
+  creadoEn: { type: Date, default: Date.now },
+  creadoPor: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
 });
 
-// Genera el bracket al iniciar el torneo
-TorneoSchema.methods.generarBracket = function () {
-  const n = this.participantes.length;
-  if (n < 2) throw new Error('Mínimo 2 participantes');
+// ─── Virtual: clasificación calculada dinámicamente ──────────────────────────
+TorneoSchema.virtual("clasificacion").get(function () {
+  const tabla = {};
 
-  // Rellenar hasta potencia de 2 más cercana con "BYE"
-  const potencia = Math.pow(2, Math.ceil(Math.log2(n)));
-  const equipos = [...this.participantes];
-  while (equipos.length < potencia) {
-    equipos.push({ nombre: 'BYE', logo: '', seed: null });
-  }
-
-  this.partidos = [];
-  let rondaActual = potencia / 2;  // número de partidos en la primera ronda
-  let rondaNum = Math.log2(potencia);
-
-  // Primera ronda: emparejamiento 1 vs N, 2 vs N-1, etc. (estilo torneo)
-  for (let i = 0; i < rondaActual; i++) {
-    const e1 = equipos[i];
-    const e2 = equipos[potencia - 1 - i];
-    const partido = {
-      ronda:  rondaNum,
-      orden:  i,
-      equipo1: { nombre: e1.nombre, logo: e1.logo || '', puntos: null },
-      equipo2: { nombre: e2.nombre, logo: e2.logo || '', puntos: null },
-      ganador: e2.nombre === 'BYE' ? e1.nombre : null,
-      completado: e2.nombre === 'BYE',
+  for (const equipo of this.equipos) {
+    tabla[equipo.nombre] = {
+      equipo: equipo.nombre,
+      pj: 0,
+      pg: 0,
+      pe: 0,
+      pp: 0,
+      pts: 0,
     };
-    this.partidos.push(partido);
   }
 
-  // Rondas vacías para las siguientes fases
-  let partidosPorRonda = rondaActual / 2;
-  rondaNum--;
-  while (partidosPorRonda >= 1) {
-    for (let i = 0; i < partidosPorRonda; i++) {
-      this.partidos.push({
-        ronda: rondaNum,
-        orden: i,
-        equipo1: { nombre: null, logo: '', puntos: null },
-        equipo2: { nombre: null, logo: '', puntos: null },
-        ganador: null,
-        completado: false,
-      });
+  for (const jornada of this.jornadas) {
+    for (const enf of jornada.enfrentamientos) {
+      if (enf.estado !== "jugado" || !enf.resultado) continue;
+
+      const e1 = tabla[enf.equipo1];
+      const e2 = tabla[enf.equipo2];
+      if (!e1 || !e2) continue;
+
+      e1.pj++;
+      e2.pj++;
+
+      const g = enf.resultado.ganador;
+      if (g === "equipo1") {
+        e1.pg++;
+        e1.pts += 3;
+        e2.pp++;
+      } else if (g === "equipo2") {
+        e2.pg++;
+        e2.pts += 3;
+        e1.pp++;
+      } else {
+        e1.pe++;
+        e1.pts++;
+        e2.pe++;
+        e2.pts++;
+      }
     }
-    rondaNum--;
-    partidosPorRonda = Math.floor(partidosPorRonda / 2);
   }
 
-  this.estado = 'activo';
-};
+  return Object.values(tabla).sort((a, b) => b.pts - a.pts || b.pg - a.pg);
+});
 
-module.exports = mongoose.model('Torneo', TorneoSchema);
+TorneoSchema.set("toJSON", { virtuals: true });
+TorneoSchema.set("toObject", { virtuals: true });
+
+module.exports = mongoose.model("Torneo", TorneoSchema);
