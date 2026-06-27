@@ -1,274 +1,310 @@
-// ── Guard: redirigir si no está logueado ─────────────────────────
-if (!estaLogueado()) window.location.href = 'login.html';
+// ── Estado del wizard ──────────────────────────────────────────────────────
+let wizardPaso = 1;
+const WIZARD_TOTAL_PASOS = 5;
 
-const admin = getAdmin();
-let misLigas = [];
+document.addEventListener("DOMContentLoaded", () => {
+  protegerPagina();
+  pintarAdminTag();
+  cargarCopas();
+  construirPuntosGrid(10);
 
-// Mostrar nombre del admin en navbar
-document.getElementById('adminUsername').textContent = admin?.username || '';
+  document
+    .getElementById("wParticipantes")
+    .addEventListener("input", actualizarContadorParticipantes);
+  document
+    .getElementById("wClasificados")
+    .addEventListener("input", actualizarHintClasificados);
+});
 
-// ── Navegación sidebar ───────────────────────────────────────────
-function mostrarSeccion(id, el) {
-  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('visible'));
-  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-  document.getElementById(`sec-${id}`).classList.add('visible');
-  el.classList.add('active');
-}
-
-// ── Cargar ligas al iniciar ──────────────────────────────────────
-async function cargarLigas() {
-  const grid = document.getElementById('ligasGrid');
-  try {
-    const data = await fetchMisLigas();
-    misLigas = data.ligas || [];
-    renderLigas();
-    poblarSelectorLigas();
-  } catch (err) {
-    grid.innerHTML = `<p style="color:var(--red-light); font-size:13px">Error cargando ligas: ${err.message}</p>`;
+// ── Auth helpers ─────────────────────────────────────────────────────────────
+// logout() ya existe en api.js — no lo redefinimos aquí.
+function protegerPagina() {
+  if (!estaLogueado()) {
+    window.location.href = "login.html";
   }
 }
 
-function renderLigas() {
-  const grid = document.getElementById('ligasGrid');
-  if (!misLigas.length) {
-    grid.innerHTML = `
-      <div class="estado-msg">
-        <span class="material-icons">sports_motorsports</span>
-        <p>No tienes ligas aún. ¡Añade la primera!</p>
-      </div>`;
+function pintarAdminTag() {
+  const admin = getAdmin();
+  document.getElementById("adminTag").textContent = admin?.username || "";
+}
+
+// ── Cargar y pintar copas ───────────────────────────────────────────────────
+async function cargarCopas() {
+  try {
+    const res = await fetchMisCopas();
+    pintarCopas(res.copas || []);
+  } catch (err) {
+    console.error("Error cargando copas:", err.message);
+  }
+}
+
+function pintarCopas(copas) {
+  const grid = document.getElementById("copasGrid");
+  const empty = document.getElementById("emptyState");
+
+  if (!copas.length) {
+    grid.style.display = "none";
+    empty.style.display = "block";
     return;
   }
-  grid.innerHTML = misLigas.map(liga => {
-    const sincronizado = liga.cache?.ultimaSync
-      ? `<span class="sync-badge"><span class="material-icons">check_circle</span> Sync: ${new Date(liga.cache.ultimaSync).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</span>`
-      : `<span class="sync-badge" style="color:var(--muted)">Sin sincronizar</span>`;
-    const nEquipos  = liga.cache?.equipos?.length || 0;
-    const nCarreras = liga.cache?.calendario?.length || 0;
 
-    return `
-      <div class="liga-card">
-        <div class="liga-card-header">
-          <div class="liga-card-icon"><span class="material-icons">sports_motorsports</span></div>
-          <div>
-            <div class="liga-card-nombre">${liga.nombre}</div>
-            <div class="liga-card-id">ID: ${liga.igpLigaId} · T${liga.temporada}</div>
+  grid.style.display = "grid";
+  empty.style.display = "none";
+
+  grid.innerHTML = copas
+    .map((copa) => {
+      const bannerStyle = copa.bannerUrl
+        ? `background-image: url('${escapeAttr(copa.bannerUrl)}')`
+        : "";
+      const faseLabel =
+        {
+          jornadas: "Jornadas",
+          eliminatoria: "Eliminatoria",
+          finalizado: "Finalizada",
+        }[copa.fase] || copa.fase;
+
+      return `
+      <div class="copa-card" onclick="abrirCopa('${copa._id}')">
+        <div class="copa-banner" style="${bannerStyle}">
+          <span class="copa-fase-tag ${copa.fase}">${faseLabel}</span>
+        </div>
+        <div class="copa-body">
+          <div class="copa-nombre">${escapeHtml(copa.nombre)}</div>
+          <div class="copa-meta">
+            <span><span class="material-icons">groups</span> ${copa.participantes?.length || 0}</span>
+            <span><span class="material-icons">calendar_today</span> ${copa.numJornadas} jornadas</span>
           </div>
         </div>
-        <div style="display:flex; gap:16px; font-size:12px; color:var(--muted); margin-bottom:8px">
-          <span><strong style="color:var(--white)">${nEquipos}</strong> equipos</span>
-          <span><strong style="color:var(--white)">${nCarreras}</strong> carreras</span>
-        </div>
-        ${sincronizado}
-        <div class="liga-card-actions">
-          <button class="btn-sm btn-sm--red" onclick="sincronizar('${liga._id}')">
-            <span class="material-icons">sync</span> Sincronizar
-          </button>
-          <a href="bracket.html?liga=${liga._id}" class="btn-sm">
-            <span class="material-icons">emoji_events</span> Torneos
-          </a>
-        </div>
-      </div>`;
-  }).join('');
+      </div>
+    `;
+    })
+    .join("");
 }
 
-function poblarSelectorLigas() {
-  const sel = document.getElementById('selectorLigaTorneo');
-  sel.innerHTML = '<option value="">— Selecciona una liga —</option>';
-  misLigas.forEach(l => {
-    sel.innerHTML += `<option value="${l._id}">${l.nombre}</option>`;
+function abrirCopa(id) {
+  window.location.href = `copa.html?id=${id}`;
+}
+
+// ── Wizard: navegación ───────────────────────────────────────────────────────
+function abrirWizard() {
+  wizardPaso = 1;
+  document.getElementById("wizardOverlay").classList.add("open");
+  document.getElementById("wNombre").value = "";
+  document.getElementById("wBanner").value = "";
+  document.getElementById("wParticipantes").value = "";
+  document.getElementById("wJornadas").value = 10;
+  document.getElementById("wClasificados").value = 8;
+  construirPuntosGrid(10);
+  actualizarContadorParticipantes();
+  actualizarHintClasificados();
+  renderizarPasoWizard();
+}
+
+function cerrarWizard() {
+  document.getElementById("wizardOverlay").classList.remove("open");
+  ocultarErrorWizard();
+}
+
+function renderizarPasoWizard() {
+  document.querySelectorAll(".wizard-step").forEach((el) => {
+    el.classList.toggle("active", parseInt(el.dataset.step, 10) === wizardPaso);
+  });
+  document.querySelectorAll(".wizard-steps span").forEach((el) => {
+    const n = parseInt(el.dataset.step, 10);
+    el.classList.remove("done", "active");
+    if (n < wizardPaso) el.classList.add("done");
+    if (n === wizardPaso) el.classList.add("active");
+  });
+  document.getElementById("wizardStepLabel").textContent =
+    `Paso ${wizardPaso} de ${WIZARD_TOTAL_PASOS}`;
+  document.getElementById("btnAtras").style.display =
+    wizardPaso > 1 ? "inline-block" : "none";
+  document.getElementById("btnSiguiente").textContent =
+    wizardPaso === WIZARD_TOTAL_PASOS ? "Crear copa" : "Siguiente";
+
+  if (wizardPaso === 5) pintarResumen();
+  ocultarErrorWizard();
+}
+
+function wizardAtras() {
+  if (wizardPaso > 1) {
+    wizardPaso -= 1;
+    renderizarPasoWizard();
+  }
+}
+
+async function wizardSiguiente() {
+  if (!validarPasoActual()) return;
+
+  if (wizardPaso < WIZARD_TOTAL_PASOS) {
+    wizardPaso += 1;
+    renderizarPasoWizard();
+  } else {
+    await crearCopaDesdeWizard();
+  }
+}
+
+function validarPasoActual() {
+  ocultarErrorWizard();
+
+  if (wizardPaso === 1) {
+    const nombre = document.getElementById("wNombre").value.trim();
+    if (!nombre) return mostrarErrorWizard("Ponle un nombre a la copa.");
+  }
+
+  if (wizardPaso === 2) {
+    const lista = obtenerParticipantes();
+    if (lista.length < 2)
+      return mostrarErrorWizard("Necesitas al menos 2 participantes.");
+  }
+
+  if (wizardPaso === 4) {
+    const jornadas = parseInt(document.getElementById("wJornadas").value, 10);
+    const clasificados = parseInt(
+      document.getElementById("wClasificados").value,
+      10,
+    );
+    const totalParticipantes = obtenerParticipantes().length;
+
+    if (!jornadas || jornadas < 1)
+      return mostrarErrorWizard("El número de jornadas debe ser al menos 1.");
+    if (!clasificados || clasificados < 2)
+      return mostrarErrorWizard("Deben clasificar al menos 2 participantes.");
+    if (clasificados > totalParticipantes) {
+      return mostrarErrorWizard(
+        `No puedes clasificar a más de ${totalParticipantes} (el total de participantes).`,
+      );
+    }
+  }
+
+  return true;
+}
+
+function mostrarErrorWizard(msg) {
+  const el = document.getElementById("wizardError");
+  el.textContent = msg;
+  el.style.display = "block";
+  return false;
+}
+
+function ocultarErrorWizard() {
+  document.getElementById("wizardError").style.display = "none";
+}
+
+// ── Wizard: helpers de cada paso ────────────────────────────────────────────
+function obtenerParticipantes() {
+  return document
+    .getElementById("wParticipantes")
+    .value.split("\n")
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+function actualizarContadorParticipantes() {
+  const n = obtenerParticipantes().length;
+  document.getElementById("contadorParticipantes").textContent =
+    `${n} participante${n === 1 ? "" : "s"}`;
+}
+
+function actualizarHintClasificados() {
+  const total = obtenerParticipantes().length;
+  const clasificados =
+    parseInt(document.getElementById("wClasificados").value, 10) || 0;
+  const hint = document.getElementById("hintClasificados");
+  if (total > 0) {
+    hint.textContent = `De ${total} participantes, pasarán los ${clasificados} primeros de la clasificación general.`;
+  } else {
+    hint.textContent = "";
+  }
+}
+
+function construirPuntosGrid(n) {
+  const grid = document.getElementById("puntosGrid");
+  const valoresActuales = leerTablaPuntos();
+  const defaults = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+
+  grid.innerHTML = "";
+  for (let i = 0; i < n; i++) {
+    const valor =
+      valoresActuales[i] !== undefined ? valoresActuales[i] : defaults[i] || 0;
+    const slot = document.createElement("div");
+    slot.className = "punto-slot";
+    slot.innerHTML = `
+      <label>P${i + 1}</label>
+      <input type="number" min="0" value="${valor}" data-pos="${i}" />
+    `;
+    grid.appendChild(slot);
+  }
+}
+
+function usarPuntosF1() {
+  const defaults = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+  document.querySelectorAll("#puntosGrid input").forEach((input, i) => {
+    input.value = defaults[i] !== undefined ? defaults[i] : 0;
   });
 }
 
-async function sincronizar(ligaId) {
-  const btn = event.target.closest('button');
-  const original = btn.innerHTML;
-  btn.innerHTML = '<span class="spinner"></span>';
+function leerTablaPuntos() {
+  return Array.from(document.querySelectorAll("#puntosGrid input")).map(
+    (input) => parseInt(input.value, 10) || 0,
+  );
+}
+
+function pintarResumen() {
+  const nombre = document.getElementById("wNombre").value.trim();
+  const banner = document.getElementById("wBanner").value.trim();
+  const participantes = obtenerParticipantes();
+  const jornadas = document.getElementById("wJornadas").value;
+  const clasificados = document.getElementById("wClasificados").value;
+  const tablaPuntos = leerTablaPuntos();
+
+  document.getElementById("resumenList").innerHTML = `
+    <div class="resumen-item"><span>Nombre</span><span>${escapeHtml(nombre)}</span></div>
+    <div class="resumen-item"><span>Banner</span><span>${banner ? "Sí" : "Por defecto"}</span></div>
+    <div class="resumen-item"><span>Participantes</span><span>${participantes.length}</span></div>
+    <div class="resumen-item"><span>Jornadas</span><span>${jornadas}</span></div>
+    <div class="resumen-item"><span>Clasificados a octavos</span><span>${clasificados}</span></div>
+    <div class="resumen-item"><span>Puntos (1º → último)</span><span>${tablaPuntos.join("-")}</span></div>
+  `;
+}
+
+// ── Crear copa (llamada final al backend) ───────────────────────────────────
+async function crearCopaDesdeWizard() {
+  const btn = document.getElementById("btnSiguiente");
   btn.disabled = true;
+  btn.textContent = "Creando...";
+
   try {
-    const data = await sincronizarLiga(ligaId);
-    await cargarLigas();
-    console.log(`Sync OK: ${data.equipos} equipos, ${data.carreras} carreras`);
+    const payload = {
+      nombre: document.getElementById("wNombre").value.trim(),
+      bannerUrl: document.getElementById("wBanner").value.trim(),
+      participantes: obtenerParticipantes(),
+      tablaPuntos: leerTablaPuntos(),
+      numJornadas: parseInt(document.getElementById("wJornadas").value, 10),
+      numClasificados: parseInt(
+        document.getElementById("wClasificados").value,
+        10,
+      ),
+    };
+
+    const res = await crearCopa(payload); // helper de api.js
+    cerrarWizard();
+    abrirCopa(res.copa._id);
   } catch (err) {
-    alert('Error sincronizando: ' + err.message);
-    btn.innerHTML = original;
+    mostrarErrorWizard(err.message || "No se pudo crear la copa.");
     btn.disabled = false;
+    btn.textContent = "Crear copa";
   }
 }
 
-// ── Modal nueva liga ─────────────────────────────────────────────
-function abrirModalLiga() { document.getElementById('modalLiga').classList.add('open'); }
-function cerrarModalLiga() { document.getElementById('modalLiga').classList.remove('open'); }
-
-async function guardarLiga() {
-  const nombre    = document.getElementById('mNombre').value.trim();
-  const igpLigaId = document.getElementById('mIgpId').value.trim();
-  const temporada = document.getElementById('mTemporada').value.trim();
-  const igpEmail  = document.getElementById('mIgpEmail').value.trim();
-  const igpPassword = document.getElementById('mIgpPass').value;
-  const errEl     = document.getElementById('mError');
-  const okEl      = document.getElementById('mOk');
-  const btn       = document.getElementById('btnGuardarLiga');
-
-  errEl.style.display = 'none';
-  okEl.style.display  = 'none';
-
-  if (!nombre || !igpLigaId || !temporada || !igpEmail || !igpPassword) {
-    errEl.textContent = 'Rellena todos los campos.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Verificando…';
-
-  try {
-    await crearLiga({ nombre, igpLigaId, temporada, igpEmail, igpPassword });
-    okEl.textContent = '¡Liga añadida! Puedes cerrar este panel.';
-    okEl.style.display = 'block';
-    await cargarLigas();
-    setTimeout(cerrarModalLiga, 1500);
-  } catch (err) {
-    errEl.textContent = err.message;
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-icons">check</span> Guardar y verificar';
-  }
+// ── Utilidades ────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
 }
 
-// ── Torneos ──────────────────────────────────────────────────────
-async function cargarTorneos() {
-  const ligaId = document.getElementById('selectorLigaTorneo').value;
-  const btnNew = document.getElementById('btnNuevoTorneo');
-  const lista  = document.getElementById('torneoLista');
-
-  btnNew.disabled = !ligaId;
-  if (!ligaId) {
-    lista.innerHTML = '<p style="color:var(--muted); font-size:13px">Selecciona una liga para ver sus torneos.</p>';
-    return;
-  }
-
-  lista.innerHTML = '<div class="skeleton-row"></div>';
-  try {
-    const data = await fetchTorneos(ligaId);
-    const torneos = data.torneos || [];
-    if (!torneos.length) {
-      lista.innerHTML = '<div class="estado-msg"><span class="material-icons">emoji_events</span><p>No hay torneos aún. Crea el primero.</p></div>';
-      return;
-    }
-    lista.innerHTML = torneos.map(t => `
-      <div class="torneo-row">
-        <span class="torneo-estado ${t.estado}">${t.estado}</span>
-        <div style="flex:1">
-          <div style="font-weight:600">${t.nombre}</div>
-          <div style="font-size:12px; color:var(--muted)">${t.participantes?.length || 0} participantes</div>
-        </div>
-        ${t.estado === 'borrador' ? `<button class="btn-sm btn-sm--red" onclick="iniciarTorneoUI('${t._id}')"><span class="material-icons">play_arrow</span> Iniciar</button>` : ''}
-        <a href="bracket.html?torneo=${t._id}" class="btn-sm"><span class="material-icons">account_tree</span> Ver bracket</a>
-      </div>`).join('');
-  } catch (err) {
-    lista.innerHTML = `<p style="color:var(--red-light)">Error: ${err.message}</p>`;
-  }
+function escapeAttr(str) {
+  return String(str).replace(/'/g, "%27").replace(/"/g, "%22");
 }
-
-async function iniciarTorneoUI(torneoId) {
-  if (!confirm('¿Iniciar el torneo? Esto generará el bracket y no se puede deshacer.')) return;
-  try {
-    await iniciarTorneo(torneoId);
-    await cargarTorneos();
-  } catch (err) {
-    alert('Error: ' + err.message);
-  }
-}
-
-function abrirModalTorneo() { document.getElementById('modalTorneo').classList.add('open'); }
-function cerrarModalTorneo() { document.getElementById('modalTorneo').classList.remove('open'); }
-
-async function guardarTorneo() {
-  const nombre   = document.getElementById('tNombre').value.trim();
-  const rawParti = document.getElementById('tParticipantes').value.trim();
-  const ligaId   = document.getElementById('selectorLigaTorneo').value;
-  const errEl    = document.getElementById('tError');
-  const btn      = document.getElementById('btnGuardarTorneo');
-
-  errEl.style.display = 'none';
-
-  const participantes = rawParti.split('\n')
-    .map(l => l.trim())
-    .filter(Boolean)
-    .map((nombre, i) => ({ nombre, logo: '', seed: i + 1 }));
-
-  if (!nombre || participantes.length < 2) {
-    errEl.textContent = 'Pon un nombre y al menos 2 participantes.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>';
-
-  try {
-    await crearTorneo({ nombre, ligaId, participantes });
-    cerrarModalTorneo();
-    await cargarTorneos();
-  } catch (err) {
-    errEl.textContent = err.message;
-    errEl.style.display = 'block';
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-icons">check</span> Crear torneo';
-  }
-}
-
-// ── Resultado rápido en dashboard ────────────────────────────────
-async function cargarResultadoDash() {
-  const liga      = document.getElementById('rLiga').value.trim();
-  const temporada = document.getElementById('rTemporada').value.trim();
-  const carrera   = document.getElementById('rCarrera').value.trim();
-  const output    = document.getElementById('dashResultado');
-
-  if (!carrera) { alert('Pon el ID de la carrera'); return; }
-
-  output.classList.remove('hidden');
-  output.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div>';
-
-  try {
-    const data = await fetchResultado(liga, temporada, carrera);
-    output.innerHTML = renderResultados(data);
-  } catch (err) {
-    output.innerHTML = `<div class="estado-msg"><span class="material-icons">error_outline</span><p>${err.message}</p></div>`;
-  }
-}
-
-function renderResultados(data) {
-  if (!data.resultados?.length) return '<p style="color:var(--muted)">No se encontraron resultados.</p>';
-  return `
-    <div class="resultado-header">
-      ${data.bandera ? `<img class="resultado-bandera" src="${data.bandera}" />` : ''}
-      <div>
-        <div class="resultado-titulo">${data.carrera?.titulo || 'Resultado'}</div>
-        <div class="resultado-meta">Carrera ${data.carrera?.id} · Temporada ${data.carrera?.temporada}</div>
-      </div>
-    </div>
-    <table class="resultado-table">
-      <thead>
-        <tr><th>Pos</th><th>Equipo</th><th>Manager</th><th style="text-align:right">Puntos</th></tr>
-      </thead>
-      <tbody>
-        ${data.resultados.map(r => `
-          <tr>
-            <td class="td-pos ${r.podiumClass}">${r.posicion}</td>
-            <td>
-              <div class="td-equipo">
-                ${r.logo ? `<img class="equipo-logo" src="${r.logo}" onerror="this.style.display='none'" />` : ''}
-                <div><div class="equipo-nombre">${r.equipo}</div></div>
-              </div>
-            </td>
-            <td style="color:var(--muted-light); font-size:13px">${r.manager || '—'}</td>
-            <td class="td-puntos">${r.puntos || '—'}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
-}
-
-// ── Init ─────────────────────────────────────────────────────────
-cargarLigas();

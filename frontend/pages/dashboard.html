@@ -1,368 +1,662 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard ·  MS GRID ADMINISTRADOR</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/srs.css" />
-  <style>
-    .dash-layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - var(--nav-h)); }
-    @media (max-width: 768px) { .dash-layout { grid-template-columns: 1fr; } }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mis copas — MS Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --asphalt: #0b0d10;
+        --asphalt-2: #14171c;
+        --asphalt-3: #1b1f26;
+        --bone: #f2f0ea;
+        --bone-dim: #9a9d9f;
+        --flag: #c8ff3d;
+        --flag-dim: #8fb82b;
+        --red: #ff3b30;
+        --line: #232830;
+      }
 
-    /* Sidebar */
-    .sidebar {
-      background: var(--bg-panel);
-      border-right: 1px solid var(--border);
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .sidebar-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      padding: 8px 12px 4px;
-      margin-top: 12px;
-    }
-    .sidebar-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: var(--radius);
-      font-size: 14px;
-      color: var(--muted-light);
-      cursor: pointer;
-      transition: background .12s, color .12s;
-    }
-    .sidebar-link .material-icons { font-size: 18px; }
-    .sidebar-link:hover, .sidebar-link.active { background: var(--bg-panel-2); color: var(--white); }
-    .sidebar-link.active { color: var(--red-light); }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    /* Contenido principal */
-    .dash-content { padding: 28px 32px; overflow-y: auto; }
-    @media (max-width: 768px) { .dash-content { padding: 20px 16px; } }
+      body {
+        background: var(--asphalt);
+        color: var(--bone);
+        font-family: "JetBrains Mono", monospace;
+        min-height: 100vh;
+      }
 
-    .dash-section { display: none; }
-    .dash-section.visible { display: block; }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      :focus-visible {
+        outline: 2px solid var(--flag);
+        outline-offset: 2px;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
 
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .section-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+      /* ── Header ───────────────────────────────────────────── */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 22px 6vw;
+        border-bottom: 1px solid var(--line);
+      }
+      .logo {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: 20px;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--flag);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--flag);
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      #adminTag {
+        font-size: 11px;
+        color: var(--bone-dim);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .btn-ghost {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        background: none;
+        border: 1px solid var(--line);
+        padding: 8px 14px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .btn-ghost:hover {
+        border-color: var(--bone-dim);
+        color: var(--bone);
+      }
+      .btn-ghost .material-icons {
+        font-size: 16px;
+      }
 
-    /* Grid de ligas */
-    .ligas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+      /* ── Main ─────────────────────────────────────────────── */
+      main {
+        padding: 6vh 6vw;
+        max-width: 1180px;
+        margin: 0 auto;
+      }
 
-    .liga-card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      cursor: pointer;
-      transition: border-color .15s, box-shadow .15s;
-    }
-    .liga-card:hover { border-color: var(--red); box-shadow: 0 0 20px #c0393910; }
-    .liga-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .liga-card-icon { background: var(--red); border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
-    .liga-card-icon .material-icons { font-size: 22px; }
-    .liga-card-nombre { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-    .liga-card-id { font-size: 12px; color: var(--muted); }
-    .liga-card-actions { display: flex; gap: 8px; margin-top: 16px; }
-    .btn-sm {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 12px;
-      border-radius: var(--radius);
-      font-size: 12px;
-      font-weight: 600;
-      border: 1px solid var(--border);
-      background: var(--bg-panel-2);
-      color: var(--muted-light);
-      cursor: pointer;
-      transition: color .12s, background .12s;
-    }
-    .btn-sm:hover { color: var(--white); background: var(--bg-panel); }
-    .btn-sm--red { border-color: var(--red); color: var(--red-light); }
-    .btn-sm--red:hover { background: var(--red); color: #fff; }
-    .btn-sm .material-icons { font-size: 15px; }
+      .page-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 36px;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--flag);
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: clamp(32px, 5vw, 52px);
+        text-transform: uppercase;
+        line-height: 0.95;
+      }
+      .btn-primary {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--asphalt);
+        background: var(--flag);
+        padding: 13px 22px;
+        border: none;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+        white-space: nowrap;
+      }
+      .btn-primary:hover {
+        background: var(--bone);
+        transform: translateY(-1px);
+      }
+      .btn-primary .material-icons {
+        font-size: 18px;
+      }
 
-    .sync-badge {
-      font-size: 11px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .sync-badge .material-icons { font-size: 13px; color: #4caf50; }
+      /* ── Grid de copas ────────────────────────────────────── */
+      .copas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+      .copa-card {
+        background: var(--asphalt-2);
+        padding: 0;
+        cursor: pointer;
+        transition: background 0.25s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      .copa-card:hover {
+        background: var(--asphalt-3);
+      }
+      .copa-banner {
+        height: 110px;
+        background-size: cover;
+        background-position: center;
+        background-color: var(--asphalt-3);
+        border-bottom: 1px solid var(--line);
+        position: relative;
+      }
+      .copa-fase-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 9px;
+        border-radius: 20px;
+        background: rgba(11, 13, 16, 0.75);
+        backdrop-filter: blur(4px);
+      }
+      .copa-fase-tag.jornadas {
+        color: var(--flag);
+        border: 1px solid var(--flag-dim);
+      }
+      .copa-fase-tag.eliminatoria {
+        color: #ffb84d;
+        border: 1px solid #b8862f;
+      }
+      .copa-fase-tag.finalizado {
+        color: var(--bone-dim);
+        border: 1px solid var(--line);
+      }
+      .copa-body {
+        padding: 20px 22px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .copa-nombre {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: 21px;
+        text-transform: uppercase;
+      }
+      .copa-meta {
+        font-size: 11px;
+        color: var(--bone-dim);
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .copa-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .copa-meta .material-icons {
+        font-size: 14px;
+      }
 
-    /* Modal nueva liga */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: #000000bb;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 16px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 32px;
-      width: 100%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    .modal-title {
-      font-family: var(--font-display);
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .modal-title .material-icons { color: var(--red); }
-    .modal-form { display: flex; flex-direction: column; gap: 14px; }
-    .modal-input {
-      background: var(--bg-panel-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--white);
-      padding: 10px 14px;
-      font-size: 14px;
-      width: 100%;
-      transition: border-color .15s;
-    }
-    .modal-input:focus { outline: none; border-color: var(--red); }
-    .modal-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 6px; }
-    .modal-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
-    .modal-actions .btn-primary { flex: 1; justify-content: center; }
-    .btn-cancel { flex: 1; padding: 11px; border-radius: var(--radius); border: 1px solid var(--border); background: none; color: var(--muted-light); cursor: pointer; font-weight: 600; font-size: 14px; }
-    .btn-cancel:hover { color: var(--white); }
+      /* ── Estado vacío ─────────────────────────────────────── */
+      .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        border: 1px dashed var(--line);
+      }
+      .empty-state .material-icons {
+        font-size: 40px;
+        color: var(--bone-dim);
+        margin-bottom: 14px;
+      }
+      .empty-state p {
+        color: var(--bone-dim);
+        font-size: 13px;
+        margin-bottom: 22px;
+      }
 
-    .alert { border-radius: var(--radius); padding: 10px 14px; font-size: 13px; margin-top: 8px; }
-    .alert--error { background: #c0393918; border: 1px solid var(--red); color: var(--red-light); }
-    .alert--ok    { background: #4caf5018; border: 1px solid #4caf50; color: #81c784; }
+      /* ── Modal / Wizard ───────────────────────────────────── */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 13, 16, 0.85);
+        backdrop-filter: blur(3px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+        padding: 20px;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal {
+        background: var(--asphalt-2);
+        border: 1px solid var(--line);
+        width: 100%;
+        max-width: 560px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+      }
 
-    /* Torneos */
-    .torneo-lista { display: flex; flex-direction: column; gap: 12px; }
-    .torneo-row {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .torneo-estado {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-    .torneo-estado.borrador  { background: #7a7f9422; color: var(--muted); }
-    .torneo-estado.activo    { background: #4caf5022; color: #81c784; }
-    .torneo-estado.finalizado{ background: #d4a01722; color: var(--gold); }
+      .wizard-head {
+        padding: 26px 30px 0;
+      }
+      .wizard-steps {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 18px;
+      }
+      .wizard-steps span {
+        flex: 1;
+        height: 3px;
+        background: var(--line);
+        border-radius: 2px;
+        transition: background 0.3s;
+      }
+      .wizard-steps span.done {
+        background: var(--flag);
+      }
+      .wizard-steps span.active {
+        background: var(--flag-dim);
+      }
+      .wizard-step-label {
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--flag);
+        margin-bottom: 6px;
+      }
+      .wizard-title {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .wizard-sub {
+        font-size: 12px;
+        color: var(--bone-dim);
+        margin-bottom: 22px;
+      }
 
-    /* Tabs de liga seleccionada */
-    .liga-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
-    .liga-tab {
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-    }
-    .liga-tab.active { color: var(--red-light); border-color: var(--red); }
-  </style>
-</head>
-<body>
+      .wizard-body {
+        padding: 0 30px 6px;
+        overflow-y: auto;
+        flex: 1;
+      }
+      .wizard-step {
+        display: none;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .wizard-step.active {
+        display: flex;
+      }
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <a href="../index.html" class="nav-logo">
-      <span class="logo-srs">MS GRID</span>
-      <span class="logo-sub">Admin</span>
-    </a>
-    <div class="nav-links">
-      <a href="../index.html" class="nav-link"><span class="material-icons">home</span>Web pública</a>
-      <span id="adminUsername" class="nav-link" style="color:var(--muted-light); cursor:default"></span>
-      <button class="btn-primary" onclick="logout()" style="font-size:13px; padding:7px 14px">
-        <span class="material-icons">logout</span> Salir
-      </button>
-    </div>
-  </nav>
+      .field-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--bone-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        display: block;
+        margin-bottom: 7px;
+      }
+      .field-input,
+      .field-textarea {
+        background: var(--asphalt);
+        border: 1px solid var(--line);
+        color: var(--bone);
+        padding: 11px 13px;
+        font-size: 14px;
+        width: 100%;
+        border-radius: 2px;
+        font-family: inherit;
+        transition: border-color 0.2s;
+      }
+      .field-input:focus,
+      .field-textarea:focus {
+        outline: none;
+        border-color: var(--flag-dim);
+      }
+      .field-textarea {
+        resize: vertical;
+        min-height: 130px;
+        line-height: 1.6;
+      }
+      .field-hint {
+        font-size: 11px;
+        color: var(--bone-dim);
+        margin-top: 6px;
+      }
 
-  <div class="dash-layout">
+      .puntos-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      .punto-slot {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .punto-slot label {
+        font-size: 10px;
+        color: var(--bone-dim);
+        text-align: center;
+      }
+      .punto-slot input {
+        background: var(--asphalt);
+        border: 1px solid var(--line);
+        color: var(--bone);
+        text-align: center;
+        padding: 8px 4px;
+        font-size: 13px;
+        border-radius: 2px;
+        width: 100%;
+      }
+      .link-mini {
+        font-size: 11px;
+        color: var(--flag);
+        background: none;
+        border: none;
+        align-self: flex-start;
+        text-decoration: underline;
+        text-decoration-color: var(--flag-dim);
+      }
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-label">General</div>
-      <div class="sidebar-link active" onclick="mostrarSeccion('ligas', this)">
-        <span class="material-icons">sports_motorsports</span> Mis ligas
-      </div>
-      <div class="sidebar-link" onclick="mostrarSeccion('torneos', this)">
-        <span class="material-icons">emoji_events</span> Torneos
-      </div>
-      <div class="sidebar-label">Datos</div>
-      <div class="sidebar-link" onclick="mostrarSeccion('resultado', this)">
-        <span class="material-icons">timer</span> Ver resultado
-      </div>
-    </aside>
+      .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
 
-    <!-- CONTENIDO -->
-    <main class="dash-content">
+      .resumen-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .resumen-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .resumen-item span:first-child {
+        color: var(--bone-dim);
+      }
 
-      <!-- ── SECCIÓN: LIGAS ── -->
-      <section class="dash-section visible" id="sec-ligas">
-        <h1 class="section-title">Mis ligas</h1>
-        <p class="section-sub">Conecta tu cuenta de iGP Manager para sincronizar los datos de tu liga.</p>
-        <button class="btn-primary" onclick="abrirModalLiga()" style="margin-bottom:24px">
-          <span class="material-icons">add</span> Añadir liga
+      .alert-error {
+        background: rgba(255, 59, 48, 0.1);
+        border: 1px solid var(--red);
+        color: #ff8079;
+        padding: 10px 13px;
+        font-size: 12px;
+        border-radius: 2px;
+      }
+
+      .wizard-foot {
+        padding: 20px 30px 26px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-top: 1px solid var(--line);
+      }
+      .btn-text {
+        background: none;
+        border: none;
+        color: var(--bone-dim);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .btn-text:hover {
+        color: var(--bone);
+      }
+
+      @media (max-width: 520px) {
+        .puntos-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .row-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="../index.html" class="logo"><span class="dot"></span>MS GRID</a>
+      <div class="header-right">
+        <span id="adminTag"></span>
+        <button class="btn-ghost" onclick="logout()">
+          <span class="material-icons">logout</span> Salir
         </button>
-        <div class="ligas-grid" id="ligasGrid">
-          <div class="skeleton-row" style="height:140px"></div>
-        </div>
-      </section>
+      </div>
+    </header>
 
-      <!-- ── SECCIÓN: TORNEOS ── -->
-      <section class="dash-section" id="sec-torneos">
-        <h1 class="section-title">Torneos</h1>
-        <p class="section-sub">Crea y gestiona brackets eliminatorios para tu liga.</p>
-        <div id="torneosLigaSelector" style="margin-bottom:20px">
-          <label class="modal-label">Liga</label>
-          <select class="modal-input" id="selectorLigaTorneo" onchange="cargarTorneos()" style="max-width:300px">
-            <option value="">— Selecciona una liga —</option>
-          </select>
+    <main>
+      <div class="page-top">
+        <div>
+          <div class="eyebrow">Panel de control</div>
+          <h1>Mis copas</h1>
         </div>
-        <button class="btn-primary" onclick="abrirModalTorneo()" style="margin-bottom:24px" id="btnNuevoTorneo" disabled>
-          <span class="material-icons">add</span> Nuevo torneo
+        <button class="btn-primary" onclick="abrirWizard()">
+          <span class="material-icons">add</span> Crear copa
         </button>
-        <div class="torneo-lista" id="torneoLista">
-          <p style="color:var(--muted); font-size:13px">Selecciona una liga para ver sus torneos.</p>
-        </div>
-      </section>
+      </div>
 
-      <!-- ── SECCIÓN: RESULTADO RÁPIDO ── -->
-      <section class="dash-section" id="sec-resultado">
-        <h1 class="section-title">Ver resultado</h1>
-        <p class="section-sub">Consulta cualquier carrera de iGP Manager al instante.</p>
-        <div class="panel" style="max-width:600px">
-          <div class="quick-form">
-            <div class="field-group">
-              <label for="rLiga">Liga ID</label>
-              <input type="text" id="rLiga" value="155956" />
+      <div id="copasGrid" class="copas-grid"></div>
+      <div id="emptyState" class="empty-state" style="display: none">
+        <span class="material-icons">emoji_events</span>
+        <p>Todavía no has creado ninguna copa.</p>
+        <button
+          class="btn-primary"
+          onclick="abrirWizard()"
+          style="margin: 0 auto"
+        >
+          <span class="material-icons">add</span> Crear tu primera copa
+        </button>
+      </div>
+    </main>
+
+    <!-- ── WIZARD: Crear copa ── -->
+    <div class="modal-overlay" id="wizardOverlay">
+      <div class="modal">
+        <div class="wizard-head">
+          <div class="wizard-steps">
+            <span data-step="1"></span><span data-step="2"></span>
+            <span data-step="3"></span><span data-step="4"></span
+            ><span data-step="5"></span>
+          </div>
+          <div class="wizard-step-label" id="wizardStepLabel">Paso 1 de 5</div>
+        </div>
+
+        <div class="wizard-body">
+          <!-- Paso 1: Identidad -->
+          <div class="wizard-step active" data-step="1">
+            <div class="wizard-title">Identidad de la copa</div>
+            <p class="wizard-sub">Ponle nombre e imagen a tu torneo.</p>
+            <div>
+              <label class="field-label">Nombre de la copa</label>
+              <input
+                type="text"
+                class="field-input"
+                id="wNombre"
+                placeholder="Copa de Campeones SRS"
+              />
             </div>
-            <div class="field-group">
-              <label for="rTemporada">Temporada</label>
-              <input type="text" id="rTemporada" value="72" />
+            <div>
+              <label class="field-label">URL del banner (opcional)</label>
+              <input
+                type="text"
+                class="field-input"
+                id="wBanner"
+                placeholder="https://..."
+              />
+              <p class="field-hint">
+                Si lo dejas vacío, se usará un fondo por defecto.
+              </p>
             </div>
-            <div class="field-group field-group--wide">
-              <label for="rCarrera">ID de carrera</label>
-              <input type="text" id="rCarrera" placeholder="p.e. 241" />
+          </div>
+
+          <!-- Paso 2: Participantes -->
+          <div class="wizard-step" data-step="2">
+            <div class="wizard-title">Participantes</div>
+            <p class="wizard-sub">Uno por línea. Mínimo 2.</p>
+            <div>
+              <label class="field-label">Lista de participantes</label>
+              <textarea
+                class="field-textarea"
+                id="wParticipantes"
+                placeholder="Ferrari SRS&#10;Red Bull Racing&#10;Mercedes AMG&#10;McLaren"
+              ></textarea>
+              <p class="field-hint" id="contadorParticipantes">
+                0 participantes
+              </p>
             </div>
-            <button class="btn-primary" onclick="cargarResultadoDash()">
-              <span class="material-icons">play_arrow</span> Ver
+          </div>
+
+          <!-- Paso 3: Puntuación -->
+          <div class="wizard-step" data-step="3">
+            <div class="wizard-title">Tabla de puntos</div>
+            <p class="wizard-sub">
+              Puntos otorgados según la posición de llegada en cada jornada.
+            </p>
+            <button class="link-mini" onclick="usarPuntosF1()">
+              Usar sistema F1 estándar (25-18-15-12-10-8-6-4-2-1)
+            </button>
+            <div class="puntos-grid" id="puntosGrid"></div>
+            <p class="field-hint">
+              Las posiciones por debajo de esta tabla no reciben puntos.
+            </p>
+          </div>
+
+          <!-- Paso 4: Estructura -->
+          <div class="wizard-step" data-step="4">
+            <div class="wizard-title">Estructura del torneo</div>
+            <p class="wizard-sub">
+              Cuántas jornadas se disputan y cuántos pasan a la fase
+              eliminatoria.
+            </p>
+            <div class="row-2">
+              <div>
+                <label class="field-label">Número de jornadas</label>
+                <input
+                  type="number"
+                  class="field-input"
+                  id="wJornadas"
+                  min="1"
+                  value="10"
+                />
+              </div>
+              <div>
+                <label class="field-label">Clasificados a octavos</label>
+                <input
+                  type="number"
+                  class="field-input"
+                  id="wClasificados"
+                  min="2"
+                  value="8"
+                />
+              </div>
+            </div>
+            <p class="field-hint" id="hintClasificados"></p>
+          </div>
+
+          <!-- Paso 5: Revisión -->
+          <div class="wizard-step" data-step="5">
+            <div class="wizard-title">Revisar y crear</div>
+            <p class="wizard-sub">
+              Comprueba que todo esté correcto antes de crear la copa.
+            </p>
+            <div class="resumen-list" id="resumenList"></div>
+          </div>
+
+          <div
+            id="wizardError"
+            class="alert-error"
+            style="display: none; margin-top: 14px"
+          ></div>
+        </div>
+
+        <div class="wizard-foot">
+          <button class="btn-text" onclick="cerrarWizard()">Cancelar</button>
+          <div style="display: flex; gap: 10px">
+            <button
+              class="btn-text"
+              id="btnAtras"
+              onclick="wizardAtras()"
+              style="display: none"
+            >
+              Atrás
+            </button>
+            <button
+              class="btn-primary"
+              id="btnSiguiente"
+              onclick="wizardSiguiente()"
+            >
+              Siguiente
             </button>
           </div>
-          <div id="dashResultado" class="resultado-output hidden"></div>
         </div>
-      </section>
-
-    </main>
-  </div>
-
-  <!-- ── MODAL: NUEVA LIGA ── -->
-  <div class="modal-overlay" id="modalLiga">
-    <div class="modal">
-      <div class="modal-title"><span class="material-icons">sports_motorsports</span> Añadir liga</div>
-      <div class="modal-form">
-        <div>
-          <label class="modal-label">Nombre de la liga</label>
-          <input type="text" class="modal-input" id="mNombre" placeholder="Spanish Racing Series" />
-        </div>
-        <div>
-          <label class="modal-label">ID de la liga en iGP Manager</label>
-          <input type="text" class="modal-input" id="mIgpId" placeholder="155956" />
-          <p class="modal-hint">Lo encuentras en la URL: igpleaguemanager.com/clasificacion/?liga=<strong>XXXXX</strong></p>
-        </div>
-        <div>
-          <label class="modal-label">Temporada activa</label>
-          <input type="text" class="modal-input" id="mTemporada" placeholder="72" />
-        </div>
-        <hr style="border-color: var(--border)" />
-        <p style="font-size:13px; color:var(--muted)">
-          <span class="material-icons" style="font-size:15px; vertical-align:middle">lock</span>
-          Credenciales de tu cuenta iGP Manager — se guardan cifradas.
-        </p>
-        <div>
-          <label class="modal-label">Email de iGP Manager</label>
-          <input type="email" class="modal-input" id="mIgpEmail" placeholder="tu@email.com" />
-        </div>
-        <div>
-          <label class="modal-label">Contraseña de iGP Manager</label>
-          <input type="password" class="modal-input" id="mIgpPass" placeholder="••••••••" />
-        </div>
-        <div id="mError" class="alert alert--error" style="display:none"></div>
-        <div id="mOk"    class="alert alert--ok"    style="display:none"></div>
-      </div>
-      <div class="modal-actions" style="margin-top:20px">
-        <button class="btn-cancel" onclick="cerrarModalLiga()">Cancelar</button>
-        <button class="btn-primary" id="btnGuardarLiga" onclick="guardarLiga()">
-          <span class="material-icons">check</span> Guardar y verificar
-        </button>
       </div>
     </div>
-  </div>
 
-  <!-- ── MODAL: NUEVO TORNEO ── -->
-  <div class="modal-overlay" id="modalTorneo">
-    <div class="modal">
-      <div class="modal-title"><span class="material-icons">emoji_events</span> Nuevo torneo</div>
-      <div class="modal-form">
-        <div>
-          <label class="modal-label">Nombre del torneo</label>
-          <input type="text" class="modal-input" id="tNombre" placeholder="Copa de Campeones S3" />
-        </div>
-        <div>
-          <label class="modal-label">Participantes (uno por línea, nombre del equipo)</label>
-          <textarea class="modal-input" id="tParticipantes" rows="6" placeholder="Ferrari SRS&#10;Red Bull Racing&#10;Mercedes AMG&#10;McLaren"></textarea>
-          <p class="modal-hint">Mínimo 2 equipos. El bracket se ajusta automáticamente (BYE si no es potencia de 2).</p>
-        </div>
-        <div id="tError" class="alert alert--error" style="display:none"></div>
-      </div>
-      <div class="modal-actions" style="margin-top:20px">
-        <button class="btn-cancel" onclick="cerrarModalTorneo()">Cancelar</button>
-        <button class="btn-primary" id="btnGuardarTorneo" onclick="guardarTorneo()">
-          <span class="material-icons">check</span> Crear torneo
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script src="../js/config.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/dashboard.js"></script>
-</body>
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboard.js"></script>
+  </body>
 </html>
