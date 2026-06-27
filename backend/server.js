@@ -16,19 +16,15 @@ app.use(express.static(path.join(__dirname, "..", "frontend")));
 
 // ── Rutas de la API ─────────────────────────────────────
 const authRoutes = require("./routes/auth");
-const igpRoutes = require("./routes/igp");
-const ligasRoutes = require("./routes/ligas");
-const torneosRoutes = require("./routes/torneos");
+const copasRoutes = require("./routes/copas");
 
+app.use("/api/copas", copasRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/igp", igpRoutes);
-app.use("/api/ligas", ligasRoutes);
-app.use("/api/torneos", torneosRoutes);
 
 // ── Fallback: cualquier ruta no-API devuelve el index.html ──
 app.get("*splat", (req, res, next) => {
   if (req.path.startsWith("/api")) return next();
-res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
+  res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
 });
 
 // ── Conexión a MongoDB Atlas y arranque del servidor ───
