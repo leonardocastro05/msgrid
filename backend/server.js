@@ -5,26 +5,23 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
 
 const app = express();
+
+// ── Cloudinary ────────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // ── Middlewares globales ───────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
-// ── Servir frontend y uploads como estáticos ──────────────────
+// ── Servir frontend estático ───────────────────────────────────
 app.use(express.static(path.join(__dirname, "..", "frontend")));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// ── Multer: subida de imágenes ────────────────────────────────
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, "uploads"),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ── Rutas de la API ───────────────────────────────────────────
 const authMW = require("./middleware/auth");
@@ -34,10 +31,27 @@ const copasRoutes = require("./routes/copas");
 app.use("/api/auth", authRoutes);
 app.use("/api/copas", copasRoutes);
 
-app.post("/api/upload", authMW, upload.single("banner"), (req, res) => {
+// ── Upload de imágenes a Cloudinary ───────────────────────────
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+app.post("/api/upload", authMW, upload.single("banner"), async (req, res) => {
   if (!req.file)
     return res.status(400).json({ error: "No se subió ningún archivo" });
-  res.json({ ok: true, url: `/uploads/${req.file.filename}` });
+  try {
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream({ folder: "msgrid-banners" }, (error, result) =>
+          error ? reject(error) : resolve(result),
+        )
+        .end(req.file.buffer);
+    });
+    res.json({ ok: true, url: result.secure_url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── Fallback: rutas no-API devuelven index.html ───────────────
