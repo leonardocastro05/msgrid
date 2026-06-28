@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copa — MS Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --asphalt: #0b0d10;
+        --asphalt-2: #14171c;
+        --asphalt-3: #1b1f26;
+        --bone: #f2f0ea;
+        --bone-dim: #9a9d9f;
+        --flag: #c8ff3d;
+        --flag-dim: #8fb82b;
+        --red: #ff3b30;
+        --line: #232830;
+        --gold: #f5c842;
+        --silver: #c0c4d0;
+        --bronze: #c8845a;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--asphalt);
+        color: var(--bone);
+        font-family: "JetBrains Mono", monospace;
+        min-height: 100vh;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      /* ── Header ───────────────────────────────────────── */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 6vw;
+        border-bottom: 1px solid var(--line);
+      }
+      .logo {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: 20px;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--flag);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--flag);
+      }
+      .btn-ghost {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        background: none;
+        border: 1px solid var(--line);
+        padding: 7px 14px;
+        border-radius: 2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+        text-decoration: none;
+      }
+      .btn-ghost:hover {
+        border-color: var(--bone-dim);
+        color: var(--bone);
+      }
+      .btn-ghost .material-icons {
+        font-size: 15px;
+      }
+
+      /* ── Hero ─────────────────────────────────────────── */
+      .copa-hero {
+        min-height: 220px;
+        background-size: cover;
+        background-position: center;
+        background-color: var(--asphalt-2);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 32px 6vw;
+        position: relative;
+      }
+      .copa-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(11, 13, 16, 0.95) 0%,
+          rgba(11, 13, 16, 0.4) 100%
+        );
+      }
+      .copa-hero-content {
+        position: relative;
+        z-index: 1;
+      }
+      .fase-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+      }
+      .fase-tag.jornadas {
+        color: var(--flag);
+        border: 1px solid var(--flag-dim);
+      }
+      .fase-tag.eliminatoria {
+        color: #ffb84d;
+        border: 1px solid #b8862f;
+      }
+      .fase-tag.finalizado {
+        color: var(--bone-dim);
+        border: 1px solid var(--line);
+      }
+
+      .copa-titulo {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: clamp(28px, 5vw, 52px);
+        text-transform: uppercase;
+        line-height: 1;
+        margin-bottom: 10px;
+      }
+      .copa-info {
+        font-size: 11px;
+        color: var(--bone-dim);
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .copa-info span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .copa-info .material-icons {
+        font-size: 14px;
+      }
+
+      /* ── Campeón ──────────────────────────────────────── */
+      .campeon-banner {
+        background: linear-gradient(
+          135deg,
+          rgba(245, 200, 66, 0.1),
+          rgba(245, 200, 66, 0.03)
+        );
+        border-bottom: 1px solid rgba(245, 200, 66, 0.25);
+        padding: 20px 6vw;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .campeon-banner .material-icons {
+        font-size: 28px;
+        color: var(--gold);
+      }
+      .campeon-label {
+        font-size: 10px;
+        color: var(--bone-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+      .campeon-nombre {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--gold);
+        text-transform: uppercase;
+      }
+
+      /* ── Tabs ─────────────────────────────────────────── */
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--line);
+        padding: 0 6vw;
+        gap: 0;
+      }
+      .tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 14px 18px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        transition: color 0.2s;
+      }
+      .tab .material-icons {
+        font-size: 15px;
+      }
+      .tab:hover {
+        color: var(--bone);
+      }
+      .tab.active {
+        color: var(--flag);
+        border-bottom-color: var(--flag);
+      }
+
+      /* ── Contenido ────────────────────────────────────── */
+      .content {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 32px 6vw 64px;
+      }
+
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* ── Jornadas ─────────────────────────────────────── */
+      .jornada-bloque {
+        margin-bottom: 32px;
+      }
+
+      .jornada-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .jornada-titulo {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        text-transform: uppercase;
+      }
+      .jornada-estado {
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+      }
+      .jornada-estado.completada {
+        color: var(--flag);
+      }
+
+      .resultado-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .resultado-fila {
+        display: grid;
+        grid-template-columns: 40px 1fr auto;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: var(--asphalt-2);
+        border-radius: 2px;
+        transition: background 0.15s;
+      }
+      .resultado-fila:hover {
+        background: var(--asphalt-3);
+      }
+
+      .resultado-pos {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        text-align: center;
+        color: var(--bone-dim);
+      }
+      .resultado-pos.p1 {
+        color: var(--gold);
+      }
+      .resultado-pos.p2 {
+        color: var(--silver);
+      }
+      .resultado-pos.p3 {
+        color: var(--bronze);
+      }
+
+      .resultado-nombre {
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .resultado-puntos {
+        font-size: 12px;
+        color: var(--bone-dim);
+        white-space: nowrap;
+      }
+      .resultado-puntos strong {
+        color: var(--flag);
+      }
+
+      .jornada-vacia {
+        padding: 20px 14px;
+        color: var(--bone-dim);
+        font-size: 12px;
+        background: var(--asphalt-2);
+        border-radius: 2px;
+        text-align: center;
+      }
+
+      /* ── Clasificación ────────────────────────────────── */
+      .tabla-clasificacion {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .tabla-clasificacion th {
+        text-align: left;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--bone-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .tabla-clasificacion td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+        vertical-align: middle;
+      }
+      .tabla-clasificacion tr:last-child td {
+        border-bottom: none;
+      }
+      .tabla-clasificacion tbody tr:hover td {
+        background: var(--asphalt-2);
+      }
+
+      .cls-pos {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--bone-dim);
+        width: 40px;
+      }
+      .cls-pos.p1 {
+        color: var(--gold);
+      }
+      .cls-pos.p2 {
+        color: var(--silver);
+      }
+      .cls-pos.p3 {
+        color: var(--bronze);
+      }
+      .cls-nombre {
+        font-weight: 600;
+      }
+      .cls-pts {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--flag);
+        text-align: right;
+      }
+      .cls-jornadas {
+        color: var(--bone-dim);
+        text-align: center;
+        font-size: 12px;
+      }
+      .clasificados-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        color: var(--flag);
+        border: 1px solid var(--flag-dim);
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+
+      /* ── Bracket ──────────────────────────────────────── */
+      .bracket-scroll {
+        overflow-x: auto;
+        padding-bottom: 16px;
+      }
+      .bracket-grid {
+        display: flex;
+        gap: 0;
+        align-items: center;
+        min-width: max-content;
+      }
+      .ronda-col {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        padding: 0 12px;
+        min-width: 200px;
+      }
+      .ronda-label {
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--bone-dim);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .partido {
+        background: var(--asphalt-2);
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        overflow: hidden;
+        margin: 6px 0;
+      }
+      .partido.completado {
+        border-color: rgba(200, 255, 61, 0.2);
+      }
+      .partido-equipo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 11px;
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+      }
+      .partido-equipo:last-child {
+        border-bottom: none;
+      }
+      .partido-equipo.ganador {
+        background: rgba(200, 255, 61, 0.06);
+      }
+      .partido-equipo.ganador .p-nombre {
+        color: var(--flag);
+        font-weight: 700;
+      }
+      .p-nombre {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .p-nombre.tbd {
+        color: var(--bone-dim);
+        font-style: italic;
+      }
+      .p-seed {
+        font-size: 10px;
+        color: var(--bone-dim);
+        min-width: 20px;
+        text-align: right;
+      }
+
+      /* ── Compartir ────────────────────────────────────── */
+      .share-bar {
+        background: var(--asphalt-2);
+        border-bottom: 1px solid var(--line);
+        padding: 10px 6vw;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 11px;
+        color: var(--bone-dim);
+      }
+      .share-bar .material-icons {
+        font-size: 15px;
+        color: var(--flag);
+      }
+      .share-url {
+        flex: 1;
+        background: var(--asphalt);
+        border: 1px solid var(--line);
+        color: var(--bone);
+        padding: 6px 10px;
+        font-family: inherit;
+        font-size: 11px;
+        border-radius: 2px;
+        max-width: 420px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .btn-copy {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: none;
+        border: 1px solid var(--line);
+        color: var(--bone-dim);
+        padding: 6px 12px;
+        border-radius: 2px;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .btn-copy:hover {
+        border-color: var(--flag-dim);
+        color: var(--flag);
+      }
+
+      /* ── Estado de carga / error ──────────────────────── */
+      .estado {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 80px 24px;
+        text-align: center;
+        color: var(--bone-dim);
+      }
+      .estado .material-icons {
+        font-size: 40px;
+        opacity: 0.3;
+      }
+      .estado p {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <a href="../index.html" class="logo"><span class="dot"></span>MS GRID</a>
+      <a
+        href="dashboard.html"
+        class="btn-ghost"
+        id="btnAdmin"
+        style="display: none"
+      >
+        <span class="material-icons">lock</span> Gestionar
+      </a>
+    </header>
+
+    <!-- Barra de compartir -->
+    <div class="share-bar">
+      <span class="material-icons">share</span>
+      <span>Enlace público:</span>
+      <input type="text" class="share-url" id="shareUrl" readonly />
+      <button class="btn-copy" onclick="copiarEnlace()">Copiar</button>
+    </div>
+
+    <!-- Hero de la copa -->
+    <div class="copa-hero" id="copaHero">
+      <div class="copa-hero-content">
+        <div class="fase-tag" id="faseTag"></div>
+        <div class="copa-titulo" id="copaTitulo">Cargando…</div>
+        <div class="copa-info" id="copaInfo"></div>
+      </div>
+    </div>
+
+    <!-- Banner campeón (solo si está finalizada) -->
+    <div class="campeon-banner" id="campeonBanner" style="display: none">
+      <span class="material-icons">emoji_events</span>
+      <div>
+        <div class="campeon-label">Campeón</div>
+        <div class="campeon-nombre" id="campeonNombre"></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        class="tab active"
+        data-tab="jornadas"
+        onclick="cambiarTab('jornadas', this)"
+      >
+        <span class="material-icons">calendar_today</span> Jornadas
+      </button>
+      <button
+        class="tab"
+        data-tab="clasificacion"
+        onclick="cambiarTab('clasificacion', this)"
+      >
+        <span class="material-icons">leaderboard</span> Clasificación
+      </button>
+      <button
+        class="tab"
+        data-tab="bracket"
+        onclick="cambiarTab('bracket', this)"
+      >
+        <span class="material-icons">emoji_events</span> Bracket
+      </button>
+    </div>
+
+    <!-- Contenido -->
+    <div class="content">
+      <!-- Panel: Jornadas -->
+      <div class="tab-panel active" id="panel-jornadas"></div>
+
+      <!-- Panel: Clasificación -->
+      <div class="tab-panel" id="panel-clasificacion"></div>
+
+      <!-- Panel: Bracket -->
+      <div class="tab-panel" id="panel-bracket"></div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const copaId = params.get("id");
+      let copa = null;
+
+      // Mostrar enlace público
+      document.getElementById("shareUrl").value = location.href;
+
+      // Si está logueado, mostrar botón de gestionar
+      const token = localStorage.getItem("srs_token");
+      if (token)
+        document.getElementById("btnAdmin").style.display = "inline-flex";
+
+      // ── Cargar copa ──────────────────────────────────────────
+      async function cargarCopa() {
+        if (!copaId) return mostrarError("No se especificó una copa.");
+        try {
+          const res = await fetch(`${API_BASE}/copas/${copaId}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Error al cargar");
+          copa = data.copa;
+          renderCopa();
+        } catch (err) {
+          mostrarError(err.message);
+        }
+      }
+
+      function mostrarError(msg) {
+        document.getElementById("copaTitulo").textContent =
+          "Copa no encontrada";
+        document.getElementById("panel-jornadas").innerHTML = `
+          <div class="estado">
+            <span class="material-icons">error_outline</span>
+            <p>${msg}</p>
+          </div>`;
+      }
+
+      // ── Render principal ─────────────────────────────────────
+      function renderCopa() {
+        // Hero
+        const SERVER_BASE = API_BASE.replace("/api", "");
+        if (copa.bannerUrl) {
+          const url = copa.bannerUrl.startsWith("http")
+            ? copa.bannerUrl
+            : `${SERVER_BASE}${copa.bannerUrl}`;
+          document.getElementById("copaHero").style.backgroundImage =
+            `url('${url}')`;
+        }
+
+        document.title = `${copa.nombre} — MS Grid`;
+        document.getElementById("copaTitulo").textContent = copa.nombre;
+
+        const faseLabels = {
+          jornadas: "Fase de jornadas",
+          eliminatoria: "Fase eliminatoria",
+          finalizado: "Finalizado",
+        };
+        const faseTag = document.getElementById("faseTag");
+        faseTag.textContent = faseLabels[copa.fase] || copa.fase;
+        faseTag.className = `fase-tag ${copa.fase}`;
+
+        document.getElementById("copaInfo").innerHTML = `
+          <span><span class="material-icons">groups</span> ${copa.participantes.length} participantes</span>
+          <span><span class="material-icons">calendar_today</span> ${copa.numJornadas} jornadas</span>
+          <span><span class="material-icons">filter_list</span> Pasan ${copa.numClasificados} a eliminatoria</span>
+        `;
+
+        // Campeón
+        if (copa.campeon) {
+          document.getElementById("campeonBanner").style.display = "flex";
+          document.getElementById("campeonNombre").textContent = copa.campeon;
+        }
+
+        renderJornadas();
+        renderClasificacion();
+        renderBracket();
+      }
+
+      // ── Jornadas ─────────────────────────────────────────────
+      function renderJornadas() {
+        const panel = document.getElementById("panel-jornadas");
+        if (!copa.jornadas?.length) {
+          panel.innerHTML =
+            '<div class="estado"><span class="material-icons">hourglass_empty</span><p>Sin jornadas aún.</p></div>';
+          return;
+        }
+
+        panel.innerHTML = copa.jornadas
+          .map((j) => {
+            const posClass = (i) =>
+              i === 0 ? "p1" : i === 1 ? "p2" : i === 2 ? "p3" : "";
+
+            const filas = j.completada
+              ? j.resultados
+                  .map(
+                    (r, i) => `
+                <div class="resultado-fila">
+                  <div class="resultado-pos ${posClass(i)}">${r.posicion}</div>
+                  <div class="resultado-nombre">${escapeHtml(r.nombre)}</div>
+                  <div class="resultado-puntos"><strong>${r.puntos}</strong> pts</div>
+                </div>`,
+                  )
+                  .join("")
+              : `<div class="jornada-vacia">Pendiente de resultado</div>`;
+
+            return `
+            <div class="jornada-bloque">
+              <div class="jornada-head">
+                <div class="jornada-titulo">Jornada ${j.numero}${j.nombre ? ` — ${escapeHtml(j.nombre)}` : ""}</div>
+                <div class="jornada-estado ${j.completada ? "completada" : ""}">${j.completada ? "✓ Completada" : "Pendiente"}</div>
+              </div>
+              <div class="resultado-lista">${filas}</div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      // ── Clasificación ─────────────────────────────────────────
+      function renderClasificacion() {
+        const panel = document.getElementById("panel-clasificacion");
+        const cls = copa.clasificacionGeneral || [];
+
+        if (!cls.length) {
+          panel.innerHTML =
+            '<div class="estado"><span class="material-icons">leaderboard</span><p>Sin datos aún.</p></div>';
+          return;
+        }
+
+        const posClass = (i) =>
+          i === 0 ? "p1" : i === 1 ? "p2" : i === 2 ? "p3" : "";
+
+        const filas = cls
+          .map((p, i) => {
+            const clasifica = i < copa.numClasificados;
+            return `
+            <tr>
+              <td class="cls-pos ${posClass(i)}">${i + 1}</td>
+              <td class="cls-nombre">
+                ${escapeHtml(p.nombre)}
+                ${clasifica && copa.fase === "jornadas" ? '<span class="clasificados-badge">→ Clasificado</span>' : ""}
+              </td>
+              <td class="cls-jornadas">${p.jornadasCorridas}</td>
+              <td class="cls-pts">${p.puntos}</td>
+            </tr>`;
+          })
+          .join("");
+
+        panel.innerHTML = `
+          <table class="tabla-clasificacion">
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Participante</th>
+                <th style="text-align:center">Jornadas</th>
+                <th style="text-align:right">Pts</th>
+              </tr>
+            </thead>
+            <tbody>${filas}</tbody>
+          </table>`;
+      }
+
+      // ── Bracket ───────────────────────────────────────────────
+      function renderBracket() {
+        const panel = document.getElementById("panel-bracket");
+
+        if (copa.fase === "jornadas") {
+          panel.innerHTML = `
+            <div class="estado">
+              <span class="material-icons">lock</span>
+              <p>El bracket se generará cuando terminen las jornadas.</p>
+            </div>`;
+          return;
+        }
+
+        if (!copa.bracket?.length) {
+          panel.innerHTML =
+            '<div class="estado"><span class="material-icons">hourglass_empty</span><p>Sin bracket aún.</p></div>';
+          return;
+        }
+
+        const rondas = {};
+        copa.bracket.forEach((p) => {
+          if (!rondas[p.ronda]) rondas[p.ronda] = [];
+          rondas[p.ronda].push(p);
+        });
+
+        const rondasOrdenadas = Object.keys(rondas)
+          .map(Number)
+          .sort((a, b) => b - a);
+
+        const cols = rondasOrdenadas
+          .map((numRonda) => {
+            const label =
+              numRonda === 1
+                ? "Final"
+                : numRonda === 2
+                  ? "Semifinales"
+                  : numRonda === 4
+                    ? "Cuartos"
+                    : `Ronda de ${numRonda * 2}`;
+
+            const partidos = rondas[numRonda]
+              .sort((a, b) => a.orden - b.orden)
+              .map((p) => {
+                const e1ganador = p.ganador && p.ganador === p.participante1;
+                const e2ganador = p.ganador && p.ganador === p.participante2;
+                return `
+                <div class="partido ${p.completado ? "completado" : ""}">
+                  <div class="partido-equipo ${e1ganador ? "ganador" : ""}">
+                    <span class="p-nombre ${!p.participante1 ? "tbd" : ""}">${p.participante1 ? escapeHtml(p.participante1) : "Por determinar"}</span>
+                  </div>
+                  <div class="partido-equipo ${e2ganador ? "ganador" : ""}">
+                    <span class="p-nombre ${!p.participante2 ? "tbd" : ""}">${p.participante2 ? escapeHtml(p.participante2) : "Por determinar"}</span>
+                  </div>
+                </div>`;
+              })
+              .join("");
+
+            return `
+            <div class="ronda-col">
+              <div class="ronda-label">${label}</div>
+              ${partidos}
+            </div>`;
+          })
+          .join("");
+
+        panel.innerHTML = `<div class="bracket-scroll"><div class="bracket-grid">${cols}</div></div>`;
+      }
+
+      // ── Tabs ──────────────────────────────────────────────────
+      function cambiarTab(id, btn) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(`panel-${id}`).classList.add("active");
+      }
+
+      // ── Copiar enlace ─────────────────────────────────────────
+      function copiarEnlace() {
+        navigator.clipboard.writeText(location.href).then(() => {
+          const btn = document.querySelector(".btn-copy");
+          btn.textContent = "¡Copiado!";
+          setTimeout(() => {
+            btn.textContent = "Copiar";
+          }, 2000);
+        });
+      }
+
+      // ── Utilidades ────────────────────────────────────────────
+      function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      cargarCopa();
+    </script>
+  </body>
+</html>

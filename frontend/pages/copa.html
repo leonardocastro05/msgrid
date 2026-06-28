@@ -1,339 +1,781 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestionar copa — MS Grid</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<style>
-  :root{
-    --asphalt: #0B0D10;
-    --asphalt-2: #14171C;
-    --asphalt-3: #1B1F26;
-    --bone: #F2F0EA;
-    --bone-dim: #9A9D9F;
-    --flag: #C8FF3D;
-    --flag-dim: #8FB82B;
-    --red: #FF3B30;
-    --gold: #D4A017;
-    --line: #232830;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestionar copa — MS Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --asphalt: #0b0d10;
+        --asphalt-2: #14171c;
+        --asphalt-3: #1b1f26;
+        --bone: #f2f0ea;
+        --bone-dim: #9a9d9f;
+        --flag: #c8ff3d;
+        --flag-dim: #8fb82b;
+        --red: #ff3b30;
+        --gold: #d4a017;
+        --line: #232830;
+      }
 
-  *{ margin:0; padding:0; box-sizing:border-box; }
-  body{
-    background: var(--asphalt); color: var(--bone);
-    font-family:'JetBrains Mono', monospace;
-    min-height: 100vh;
-  }
-  a{ color:inherit; text-decoration:none; }
-  button{ font-family:inherit; cursor:pointer; }
-  :focus-visible{ outline: 2px solid var(--flag); outline-offset: 2px; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--asphalt);
+        color: var(--bone);
+        font-family: "JetBrains Mono", monospace;
+        min-height: 100vh;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+      :focus-visible {
+        outline: 2px solid var(--flag);
+        outline-offset: 2px;
+      }
 
-  header{
-    display:flex; justify-content: space-between; align-items:center;
-    padding: 20px 6vw; border-bottom: 1px solid var(--line);
-  }
-  .logo{
-    font-family:'Big Shoulders Display', sans-serif; font-weight:900;
-    font-size: 19px; letter-spacing:0.04em; display:flex; align-items:center; gap:9px;
-  }
-  .logo .dot{ width:8px; height:8px; background: var(--flag); border-radius:50%; box-shadow:0 0 8px var(--flag); }
-  .back-btn{
-    font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--bone-dim);
-    display:flex; align-items:center; gap:6px; transition: color 0.2s;
-  }
-  .back-btn:hover{ color: var(--bone); }
-  .back-btn svg{ width:13px; height:13px; }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 6vw;
+        border-bottom: 1px solid var(--line);
+      }
+      .logo {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: 19px;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .logo .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--flag);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--flag);
+      }
 
-  .copa-banner{
-    height: 200px;
-    background-size: cover; background-position:center;
-    background-color: var(--asphalt-2);
-    position: relative;
-    display:flex; align-items:flex-end;
-    border-bottom: 1px solid var(--line);
-  }
-  .copa-banner::after{
-    content:""; position:absolute; inset:0;
-    background: linear-gradient(180deg, rgba(11,13,16,0) 0%, rgba(11,13,16,0.92) 100%);
-  }
-  .copa-banner-content{ position:relative; z-index:2; padding: 0 6vw 22px; width:100%; }
-  .copa-fase-tag{
-    display:inline-flex; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
-    padding: 4px 10px; border-radius:20px; margin-bottom:10px;
-  }
-  .copa-fase-tag.jornadas{ color: var(--flag); border:1px solid var(--flag-dim); }
-  .copa-fase-tag.eliminatoria{ color:#ffb84d; border:1px solid #b8862f; }
-  .copa-fase-tag.finalizado{ color: var(--gold); border:1px solid var(--gold); }
-  .copa-banner h1{
-    font-family:'Big Shoulders Display', sans-serif; font-weight:900;
-    font-size: clamp(28px, 4vw, 42px); text-transform:uppercase;
-  }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-  .tabs{
-    display:flex; gap: 2px; padding: 0 6vw;
-    border-bottom: 1px solid var(--line);
-    background: var(--asphalt-2);
-  }
-  .tab{
-    padding: 15px 18px; font-size: 12px; letter-spacing:0.06em; text-transform:uppercase;
-    color: var(--bone-dim); border-bottom: 2px solid transparent; margin-bottom:-1px;
-    display:flex; align-items:center; gap:7px;
-  }
-  .tab.active{ color: var(--flag); border-color: var(--flag); }
-  .tab .material-icons{ font-size:16px; }
-  .tab[disabled]{ opacity:0.35; cursor:default; }
+      .back-btn {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: color 0.2s;
+      }
+      .back-btn:hover {
+        color: var(--bone);
+      }
+      .back-btn svg {
+        width: 13px;
+        height: 13px;
+      }
 
-  main{ max-width: 1100px; margin:0 auto; padding: 5vh 6vw 8vh; }
-  .panel{ display:none; }
-  .panel.active{ display:block; }
+      .btn-share {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--flag);
+        background: none;
+        border: 1px solid var(--flag-dim);
+        padding: 7px 13px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .btn-share:hover {
+        background: var(--flag);
+        color: var(--asphalt);
+      }
+      .btn-share .material-icons {
+        font-size: 15px;
+      }
 
-  .jornada-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px; flex-wrap:wrap; gap:10px; }
-  .jornada-head h2{
-    font-family:'Big Shoulders Display', sans-serif; font-weight:700; font-size:24px; text-transform:uppercase;
-  }
-  .jornada-status{ font-size:11px; color: var(--bone-dim); letter-spacing:0.06em; text-transform:uppercase; }
-  .jornada-status.completa{ color: var(--flag); }
+      .copa-banner {
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+        background-color: var(--asphalt-2);
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        border-bottom: 1px solid var(--line);
+      }
+      .copa-banner::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(11, 13, 16, 0) 0%,
+          rgba(11, 13, 16, 0.92) 100%
+        );
+      }
+      .copa-banner-content {
+        position: relative;
+        z-index: 2;
+        padding: 0 6vw 22px;
+        width: 100%;
+      }
+      .copa-fase-tag {
+        display: inline-flex;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+      }
+      .copa-fase-tag.jornadas {
+        color: var(--flag);
+        border: 1px solid var(--flag-dim);
+      }
+      .copa-fase-tag.eliminatoria {
+        color: #ffb84d;
+        border: 1px solid #b8862f;
+      }
+      .copa-fase-tag.finalizado {
+        color: var(--gold);
+        border: 1px solid var(--gold);
+      }
+      .copa-banner h1 {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: clamp(28px, 4vw, 42px);
+        text-transform: uppercase;
+      }
 
-  .drag-list{ display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom: 26px; }
-  .drag-item{
-    background: var(--asphalt-2);
-    padding: 13px 16px;
-    display:flex; align-items:center; gap:14px;
-    cursor: grab;
-    user-select: none;
-  }
-  .drag-item.sortable-ghost{ opacity: 0.3; }
-  .drag-item.sortable-chosen{ background: var(--asphalt-3); }
-  .drag-pos{
-    font-family:'Big Shoulders Display', sans-serif; font-weight:700;
-    font-size: 18px; color: var(--flag); width: 28px; flex-shrink:0;
-  }
-  .drag-handle{ color: var(--bone-dim); display:flex; }
-  .drag-handle .material-icons{ font-size: 18px; }
-  .drag-name{ flex:1; font-size: 14px; }
-  .drag-points{ font-size: 11px; color: var(--bone-dim); }
+      .tabs {
+        display: flex;
+        gap: 2px;
+        padding: 0 6vw;
+        border-bottom: 1px solid var(--line);
+        background: var(--asphalt-2);
+      }
+      .tab {
+        padding: 15px 18px;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .tab.active {
+        color: var(--flag);
+        border-color: var(--flag);
+      }
+      .tab .material-icons {
+        font-size: 16px;
+      }
+      .tab[disabled] {
+        opacity: 0.35;
+        cursor: default;
+      }
 
-  .jornada-actions{ display:flex; justify-content:flex-end; gap:10px; margin-bottom: 40px; }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 5vh 6vw 8vh;
+      }
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+      }
 
-  .carrusel-label{
-    font-size: 11px; letter-spacing:0.12em; text-transform:uppercase; color: var(--bone-dim);
-    margin-bottom: 12px;
-  }
-  .carrusel{
-    display:flex; gap: 8px; overflow-x:auto; padding-bottom: 6px;
-    scrollbar-width: thin;
-  }
-  .carrusel-pill{
-    flex-shrink:0;
-    width: 46px; height: 46px;
-    display:flex; align-items:center; justify-content:center;
-    border: 1px solid var(--line);
-    background: var(--asphalt-2);
-    font-family:'Big Shoulders Display', sans-serif; font-weight:700; font-size:16px;
-    color: var(--bone-dim);
-    position: relative;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .carrusel-pill:hover{ border-color: var(--bone-dim); color: var(--bone); }
-  .carrusel-pill.activa{ border-color: var(--flag); color: var(--flag); }
-  .carrusel-pill.completa::after{
-    content:""; position:absolute; bottom:4px; right:4px;
-    width:6px; height:6px; border-radius:50%; background: var(--flag);
-  }
+      .jornada-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .jornada-head h2 {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        text-transform: uppercase;
+      }
+      .jornada-status {
+        font-size: 11px;
+        color: var(--bone-dim);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .jornada-status.completa {
+        color: var(--flag);
+      }
 
-  .clasif-table{ width:100%; border-collapse: collapse; }
-  .clasif-table th{
-    text-align:left; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
-    color: var(--bone-dim); padding: 10px 14px; border-bottom: 1px solid var(--line);
-  }
-  .clasif-table td{ padding: 13px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
-  .clasif-table tr:hover td{ background: var(--asphalt-2); }
-  .clasif-pos{ font-family:'Big Shoulders Display', sans-serif; font-weight:700; color: var(--flag); width: 36px; }
-  .clasif-pts{ font-weight:600; }
+      .drag-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+        margin-bottom: 26px;
+      }
+      .drag-item {
+        background: var(--asphalt-2);
+        padding: 13px 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        cursor: grab;
+        user-select: none;
+      }
+      .drag-item.sortable-ghost {
+        opacity: 0.3;
+      }
+      .drag-item.sortable-chosen {
+        background: var(--asphalt-3);
+      }
+      .drag-pos {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--flag);
+        width: 28px;
+        flex-shrink: 0;
+      }
+      .drag-handle {
+        color: var(--bone-dim);
+        display: flex;
+      }
+      .drag-handle .material-icons {
+        font-size: 18px;
+      }
+      .drag-name {
+        flex: 1;
+        font-size: 14px;
+      }
+      .drag-points {
+        font-size: 11px;
+        color: var(--bone-dim);
+      }
 
-  .corte-marker{
-    font-size: 10px; color: var(--flag); letter-spacing:0.08em; text-transform:uppercase;
-    text-align:center; padding: 8px 0; border-bottom: 1px dashed var(--flag-dim);
-  }
+      .jornada-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 40px;
+      }
 
-  .bracket-empty{
-    text-align:center; padding: 60px 20px; color: var(--bone-dim); font-size: 13px;
-    border: 1px dashed var(--line);
-  }
-  .bracket-wrap{ display:flex; gap: 36px; overflow-x:auto; padding-bottom: 20px; }
-  .bracket-round{ display:flex; flex-direction:column; justify-content:space-around; gap: 16px; min-width: 220px; }
-  .bracket-round-label{
-    font-size: 10px; letter-spacing:0.1em; text-transform:uppercase; color: var(--bone-dim);
-    text-align:center; margin-bottom: 4px;
-  }
-  .bracket-match{
-    border: 1px solid var(--line); background: var(--asphalt-2);
-  }
-  .bracket-slot{
-    padding: 10px 14px; font-size: 13px; display:flex; justify-content:space-between; align-items:center;
-    border-bottom: 1px solid var(--line); cursor:pointer; transition: background 0.15s;
-  }
-  .bracket-slot:last-child{ border-bottom:none; }
-  .bracket-slot:hover:not(.disabled){ background: var(--asphalt-3); }
-  .bracket-slot.ganador{ color: var(--flag); font-weight:600; }
-  .bracket-slot.vacio{ color: var(--bone-dim); font-style:italic; cursor:default; }
-  .bracket-slot.disabled{ cursor:default; }
-  .bracket-slot .material-icons{ font-size: 14px; opacity:0; transition: opacity 0.15s; }
-  .bracket-slot:hover:not(.disabled):not(.ganador) .material-icons{ opacity:1; }
+      .carrusel-label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        margin-bottom: 12px;
+      }
+      .carrusel {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        scrollbar-width: thin;
+      }
+      .carrusel-pill {
+        flex-shrink: 0;
+        width: 46px;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        background: var(--asphalt-2);
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--bone-dim);
+        position: relative;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .carrusel-pill:hover {
+        border-color: var(--bone-dim);
+        color: var(--bone);
+      }
+      .carrusel-pill.activa {
+        border-color: var(--flag);
+        color: var(--flag);
+      }
+      .carrusel-pill.completa::after {
+        content: "";
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--flag);
+      }
 
-  .campeon-banner{
-    margin-top: 30px; text-align:center; padding: 30px;
-    border: 1px solid var(--gold); background: rgba(212,160,23,0.08);
-  }
-  .campeon-banner .material-icons{ font-size: 32px; color: var(--gold); margin-bottom:8px; }
-  .campeon-banner .nombre{
-    font-family:'Big Shoulders Display', sans-serif; font-weight:900; font-size:28px;
-    text-transform:uppercase; color: var(--gold);
-  }
+      .clasif-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .clasif-table th {
+        text-align: left;
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .clasif-table td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--line);
+        font-size: 13.5px;
+      }
+      .clasif-table tr:hover td {
+        background: var(--asphalt-2);
+      }
+      .clasif-pos {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        color: var(--flag);
+        width: 36px;
+      }
+      .clasif-pts {
+        font-weight: 600;
+      }
 
-  .btn-primary{
-    font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
-    color: var(--asphalt); background: var(--flag);
-    padding: 12px 20px; border:none; border-radius:2px;
-    display:flex; align-items:center; gap:8px;
-    transition: background 0.2s, transform 0.2s;
-  }
-  .btn-primary:hover:not(:disabled){ background: var(--bone); transform: translateY(-1px); }
-  .btn-primary:disabled{ opacity:0.4; cursor:default; transform:none; }
-  .btn-ghost{
-    font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color: var(--bone-dim);
-    background:none; border:1px solid var(--line); padding: 11px 18px; border-radius:2px;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .btn-ghost:hover{ border-color: var(--bone-dim); color: var(--bone); }
+      .corte-marker {
+        font-size: 10px;
+        color: var(--flag);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--flag-dim);
+      }
 
-  .toast{
-    position: fixed; bottom: 24px; right: 24px; z-index: 300;
-    background: var(--asphalt-2); border: 1px solid var(--flag-dim);
-    color: var(--bone); padding: 13px 18px; font-size: 12.5px;
-    border-radius: 2px; display:flex; align-items:center; gap:9px;
-    opacity:0; transform: translateY(8px); transition: opacity 0.25s, transform 0.25s;
-    pointer-events:none;
-  }
-  .toast.show{ opacity:1; transform:none; }
-  .toast.error{ border-color: var(--red); color:#ff8079; }
-  .toast .material-icons{ font-size:17px; }
+      .bracket-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--bone-dim);
+        font-size: 13px;
+        border: 1px dashed var(--line);
+      }
+      .bracket-wrap {
+        display: flex;
+        gap: 36px;
+        overflow-x: auto;
+        padding-bottom: 20px;
+      }
+      .bracket-round {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        gap: 16px;
+        min-width: 220px;
+      }
+      .bracket-round-label {
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        text-align: center;
+        margin-bottom: 4px;
+      }
+      .bracket-match {
+        border: 1px solid var(--line);
+        background: var(--asphalt-2);
+      }
+      .bracket-slot {
+        padding: 10px 14px;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .bracket-slot:last-child {
+        border-bottom: none;
+      }
+      .bracket-slot:hover:not(.disabled) {
+        background: var(--asphalt-3);
+      }
+      .bracket-slot.ganador {
+        color: var(--flag);
+        font-weight: 600;
+      }
+      .bracket-slot.vacio {
+        color: var(--bone-dim);
+        font-style: italic;
+        cursor: default;
+      }
+      .bracket-slot.disabled {
+        cursor: default;
+      }
+      .bracket-slot .material-icons {
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .bracket-slot:hover:not(.disabled):not(.ganador) .material-icons {
+        opacity: 1;
+      }
 
-  .modal-overlay{
-    position:fixed; inset:0; background: rgba(11,13,16,0.85); backdrop-filter: blur(3px);
-    display:none; align-items:center; justify-content:center; z-index:250; padding:20px;
-  }
-  .modal-overlay.open{ display:flex; }
-  .modal-sm{
-    background: var(--asphalt-2); border:1px solid var(--line); width:100%; max-width:380px; padding: 26px;
-  }
-  .modal-sm h3{ font-family:'Big Shoulders Display', sans-serif; font-weight:700; font-size:19px; text-transform:uppercase; margin-bottom:18px; }
-  .ganador-opcion{
-    padding: 13px 16px; border: 1px solid var(--line); margin-bottom:10px; font-size:14px;
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .ganador-opcion:hover{ border-color: var(--flag-dim); background: var(--asphalt-3); }
-  .modal-sm .btn-ghost{ width:100%; margin-top:6px; }
-</style>
-</head>
-<body>
+      .campeon-banner {
+        margin-top: 30px;
+        text-align: center;
+        padding: 30px;
+        border: 1px solid var(--gold);
+        background: rgba(212, 160, 23, 0.08);
+      }
+      .campeon-banner .material-icons {
+        font-size: 32px;
+        color: var(--gold);
+        margin-bottom: 8px;
+      }
+      .campeon-banner .nombre {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 900;
+        font-size: 28px;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
 
-  <header>
-    <div class="logo"><span class="dot"></span>MS GRID</div>
-    <a href="dashboard.html" class="back-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      Mis copas
-    </a>
-  </header>
+      .btn-primary {
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--asphalt);
+        background: var(--flag);
+        padding: 12px 20px;
+        border: none;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--bone);
+        transform: translateY(-1px);
+      }
+      .btn-primary:disabled {
+        opacity: 0.4;
+        cursor: default;
+        transform: none;
+      }
+      .btn-ghost {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bone-dim);
+        background: none;
+        border: 1px solid var(--line);
+        padding: 11px 18px;
+        border-radius: 2px;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .btn-ghost:hover {
+        border-color: var(--bone-dim);
+        color: var(--bone);
+      }
 
-  <div class="copa-banner" id="copaBanner">
-    <div class="copa-banner-content">
-      <span class="copa-fase-tag" id="faseTag"></span>
-      <h1 id="copaNombre">Cargando…</h1>
-    </div>
-  </div>
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 300;
+        background: var(--asphalt-2);
+        border: 1px solid var(--flag-dim);
+        color: var(--bone);
+        padding: 13px 18px;
+        font-size: 12.5px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.25s,
+          transform 0.25s;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: none;
+      }
+      .toast.error {
+        border-color: var(--red);
+        color: #ff8079;
+      }
+      .toast .material-icons {
+        font-size: 17px;
+      }
 
-  <nav class="tabs">
-    <div class="tab active" data-panel="jornadas" onclick="cambiarTab('jornadas')">
-      <span class="material-icons">calendar_today</span> Jornadas
-    </div>
-    <div class="tab" data-panel="clasificacion" onclick="cambiarTab('clasificacion')">
-      <span class="material-icons">leaderboard</span> Clasificación
-    </div>
-    <div class="tab" data-panel="bracket" onclick="cambiarTab('bracket')" id="tabBracket">
-      <span class="material-icons">emoji_events</span> Bracket
-    </div>
-  </nav>
-
-  <main>
-
-    <section class="panel active" id="panel-jornadas">
-      <div class="jornada-head">
-        <h2 id="jornadaTitulo">Jornada 1</h2>
-        <span class="jornada-status" id="jornadaStatus"></span>
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 13, 16, 0.85);
+        backdrop-filter: blur(3px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 250;
+        padding: 20px;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal-sm {
+        background: var(--asphalt-2);
+        border: 1px solid var(--line);
+        width: 100%;
+        max-width: 380px;
+        padding: 26px;
+      }
+      .modal-sm h3 {
+        font-family: "Big Shoulders Display", sans-serif;
+        font-weight: 700;
+        font-size: 19px;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+      }
+      .ganador-opcion {
+        padding: 13px 16px;
+        border: 1px solid var(--line);
+        margin-bottom: 10px;
+        font-size: 14px;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .ganador-opcion:hover {
+        border-color: var(--flag-dim);
+        background: var(--asphalt-3);
+      }
+      .modal-sm .btn-ghost {
+        width: 100%;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo"><span class="dot"></span>MS GRID</div>
+      <div class="header-right">
+        <button class="btn-share" onclick="compartirCopa()">
+          <span class="material-icons">share</span> Compartir
+        </button>
+        <a href="dashboard.html" class="back-btn">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Mis copas
+        </a>
       </div>
+    </header>
 
-      <div class="drag-list" id="dragList"></div>
+    <div class="copa-banner" id="copaBanner">
+      <div class="copa-banner-content">
+        <span class="copa-fase-tag" id="faseTag"></span>
+        <h1 id="copaNombre">Cargando…</h1>
+      </div>
+    </div>
 
-      <div class="jornada-actions">
-        <button class="btn-primary" id="btnGuardarJornada" onclick="guardarJornadaActual()">
-          <span class="material-icons">check</span> Guardar jornada
+    <nav class="tabs">
+      <div
+        class="tab active"
+        data-panel="jornadas"
+        onclick="cambiarTab('jornadas')"
+      >
+        <span class="material-icons">calendar_today</span> Jornadas
+      </div>
+      <div
+        class="tab"
+        data-panel="clasificacion"
+        onclick="cambiarTab('clasificacion')"
+      >
+        <span class="material-icons">leaderboard</span> Clasificación
+      </div>
+      <div
+        class="tab"
+        data-panel="bracket"
+        onclick="cambiarTab('bracket')"
+        id="tabBracket"
+      >
+        <span class="material-icons">emoji_events</span> Bracket
+      </div>
+    </nav>
+
+    <main>
+      <section class="panel active" id="panel-jornadas">
+        <div class="jornada-head">
+          <h2 id="jornadaTitulo">Jornada 1</h2>
+          <span class="jornada-status" id="jornadaStatus"></span>
+        </div>
+
+        <div class="drag-list" id="dragList"></div>
+
+        <div class="jornada-actions">
+          <button
+            class="btn-primary"
+            id="btnGuardarJornada"
+            onclick="guardarJornadaActual()"
+          >
+            <span class="material-icons">check</span> Guardar jornada
+          </button>
+        </div>
+
+        <div class="carrusel-label">Todas las jornadas</div>
+        <div class="carrusel" id="carruselJornadas"></div>
+
+        <div
+          id="bloqueGenerarBracket"
+          style="display: none; margin-top: 40px; text-align: center"
+        >
+          <p
+            style="color: var(--bone-dim); font-size: 13px; margin-bottom: 16px"
+          >
+            Todas las jornadas están completas. Ya puedes generar la fase
+            eliminatoria.
+          </p>
+          <button
+            class="btn-primary"
+            onclick="generarBracketUI()"
+            style="margin: 0 auto"
+          >
+            <span class="material-icons">emoji_events</span> Generar fase
+            eliminatoria
+          </button>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-clasificacion">
+        <table class="clasif-table">
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th>Participante</th>
+              <th>Jornadas</th>
+              <th>Puntos</th>
+            </tr>
+          </thead>
+          <tbody id="clasifBody"></tbody>
+        </table>
+      </section>
+
+      <section class="panel" id="panel-bracket">
+        <div id="bracketEmpty" class="bracket-empty">
+          El bracket se generará cuando termine la fase de jornadas.
+        </div>
+        <div id="bracketWrap" class="bracket-wrap" style="display: none"></div>
+        <div id="campeonBanner" class="campeon-banner" style="display: none">
+          <span class="material-icons">emoji_events</span>
+          <div
+            style="
+              font-size: 11px;
+              letter-spacing: 0.1em;
+              text-transform: uppercase;
+              color: var(--bone-dim);
+              margin-bottom: 6px;
+            "
+          >
+            Campeón
+          </div>
+          <div class="nombre" id="campeonNombre"></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-overlay" id="modalGanador">
+      <div class="modal-sm">
+        <h3>¿Quién gana?</h3>
+        <div id="opcionesGanador"></div>
+        <button class="btn-ghost" onclick="cerrarModalGanador()">
+          Cancelar
         </button>
       </div>
-
-      <div class="carrusel-label">Todas las jornadas</div>
-      <div class="carrusel" id="carruselJornadas"></div>
-
-      <div id="bloqueGenerarBracket" style="display:none; margin-top:40px; text-align:center;">
-        <p style="color:var(--bone-dim); font-size:13px; margin-bottom:16px;">
-          Todas las jornadas están completas. Ya puedes generar la fase eliminatoria.
-        </p>
-        <button class="btn-primary" onclick="generarBracketUI()" style="margin:0 auto">
-          <span class="material-icons">emoji_events</span> Generar fase eliminatoria
-        </button>
-      </div>
-    </section>
-
-    <section class="panel" id="panel-clasificacion">
-      <table class="clasif-table">
-        <thead>
-          <tr><th>Pos</th><th>Participante</th><th>Jornadas</th><th>Puntos</th></tr>
-        </thead>
-        <tbody id="clasifBody"></tbody>
-      </table>
-    </section>
-
-    <section class="panel" id="panel-bracket">
-      <div id="bracketEmpty" class="bracket-empty">
-        El bracket se generará cuando termine la fase de jornadas.
-      </div>
-      <div id="bracketWrap" class="bracket-wrap" style="display:none"></div>
-      <div id="campeonBanner" class="campeon-banner" style="display:none">
-        <span class="material-icons">emoji_events</span>
-        <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--bone-dim); margin-bottom:6px;">Campeón</div>
-        <div class="nombre" id="campeonNombre"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <div class="modal-overlay" id="modalGanador">
-    <div class="modal-sm">
-      <h3>¿Quién gana?</h3>
-      <div id="opcionesGanador"></div>
-      <button class="btn-ghost" onclick="cerrarModalGanador()">Cancelar</button>
     </div>
-  </div>
 
-  <div class="toast" id="toast"><span class="material-icons" id="toastIcon">check_circle</span><span id="toastMsg"></span></div>
+    <div class="toast" id="toast">
+      <span class="material-icons" id="toastIcon">check_circle</span
+      ><span id="toastMsg"></span>
+    </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-  <script src="../js/config.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/copa.js"></script>
-</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/copa.js"></script>
+    <script>
+      function compartirCopa() {
+        const params = new URLSearchParams(location.search);
+        const copaId = params.get("id");
+        if (!copaId) return;
+
+        const base =
+          location.origin + location.pathname.replace("copa.html", "");
+        const enlace = `${base}copa-publica.html?id=${copaId}`;
+
+        navigator.clipboard
+          .writeText(enlace)
+          .then(() => {
+            // Reutiliza el sistema de toast que ya tiene copa.js
+            mostrarToast("Enlace copiado al portapapeles");
+          })
+          .catch(() => {
+            // Fallback: mostrar el enlace en un prompt por si el clipboard falla
+            prompt("Copia este enlace:", enlace);
+          });
+      }
+    </script>
+  </body>
 </html>
